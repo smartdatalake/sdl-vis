@@ -1,0 +1,25 @@
+<div id="toast-container"></div>
+
+<!-- The buttons to open the menu and store the visualization -->
+<ng-include src="'templates/template-menu.html'"></ng-include>
+<!-- The menu to change the visualization parameters. -->
+<ng-include src="'templates/template-vis-properties-sidenav.html'"></ng-include>
+
+<div layout="row" layout-xs="column" layout-align="center">
+	 <div id="barSeparate"></div>
+	 <div id="boxPlot"></div>
+	 <div id="density-I"></div>
+	 <div id="density-III"></div>
+	 <v-plot-directive title-of-the-plot="titleOfThePlot"
+	                  name-of-top-distribution="nameOfTopDistribution"
+	                  name-of-bottom-distribution="nameOfBottomDistribution"
+	                  distribution-top="distributionTop"
+	                  distribution-bottom="distributionBottom"
+	                  properties="properties"
+	                  continuous="continuous"
+	                  num-of-bins="numOfBins"
+	></v-plot-directive>
+
+	<!-- Let the user upload new data and select the title of the plot etc. -->
+	<ng-include src="'templates/template-plot-data.html'"></ng-include>
+</div>

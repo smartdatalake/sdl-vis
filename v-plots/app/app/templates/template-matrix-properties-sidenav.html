@@ -1,0 +1,48 @@
+<md-sidenav class="md-sidenav-right" md-component-id="vizProp">
+
+  <md-toolbar class="md-theme-indigo">
+    <h1 class="md-toolbar-tools">
+      <md-button class="md-icon-button" ng-click="toggleSideNav('vizProp')">
+        <md-icon md-svg-src="images/ic_arrow_back_48px.svg"></md-icon>
+      </md-button>&nbsp;&nbsp;
+      Matrix Properties
+    </h1>
+  </md-toolbar>
+
+  <md-content>
+      <!-- ======================================================================================================== -->
+      <!-- STYLE AND FONTS PROPERTIES -->
+      <md-expansion-panel md-component-id="matrixProperties">
+        <md-expansion-panel-collapsed>
+          <div class="md-title">Style</div>
+        </md-expansion-panel-collapsed>
+
+        <md-expansion-panel-expanded>
+          <md-expansion-panel-header>
+            <div class="md-title">Style</div>
+          </md-expansion-panel-header>
+
+          <md-expansion-panel-content>
+
+
+            <!-- --------- IMPORT / EXPORT STYLEE ------------ -->
+            <div class="md-subhead"><b>Import v-plots properties for upper triangle</b></div>
+            <lf-ng-md-file-input lf-files="$parent.$parent.files" ng-change="$parent.importFileSelected()"
+                                 accept=".json" lf-browse-label="Import JSON" lf-placeholder="Properties upper triangle ..."></lf-ng-md-file-input>
+
+            <div style="height: 50px;"></div>
+            <md-divider></md-divider>
+            <div style="height: 50px;"></div>
+
+            <div class="md-subhead"><b>Import v-plots properties for lower triangle</b></div>
+            <lf-ng-md-file-input lf-files="$parent.$parent.files" ng-change="$parent.importFileLowerTriangleSelected()"
+                                 accept=".json" lf-browse-label="Import JSON" lf-placeholder="Properties lower triangle ..."></lf-ng-md-file-input>
+
+          </md-expansion-panel-content>
+
+        </md-expansion-panel-expanded>
+      </md-expansion-panel>
+
+  </md-content>
+
+</md-sidenav>

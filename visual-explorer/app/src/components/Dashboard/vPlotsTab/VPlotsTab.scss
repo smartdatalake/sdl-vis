@@ -1,0 +1,14 @@
+.v-plots-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  height: inherit;
+}
+
+iframe.v-plots-iframe {
+  width: 100%;
+  height: inherit;
+}

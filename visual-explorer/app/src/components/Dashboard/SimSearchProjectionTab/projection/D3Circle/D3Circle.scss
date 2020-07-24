@@ -1,0 +1,31 @@
+.projection {
+  opacity: 0.6;
+  transition: 1s;
+  stroke-dasharray: 6;
+}
+
+.d3-circle {
+  transition: 1s ease-out;
+  opacity: 0.8;
+}
+
+.tooltip {
+  background: black;
+  width: 40%;
+}
+
+.prediction-location {
+  opacity: 0;
+}
+
+.prediction-revenue {
+  opacity: 0;
+}
+
+.prediction-employees {
+  opacity: 0;
+}
+
+.prediction-keywords {
+  opacity: 0;
+}

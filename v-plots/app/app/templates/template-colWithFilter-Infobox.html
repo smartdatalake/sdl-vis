@@ -1,0 +1,90 @@
+<md-dialog aria-label="Select Column and Filter">
+  <form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Select Column and Filter option for CSV upload</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="closeDialog()">
+          <md-icon md-svg-src="images/ic_close_black_48px.svg" aria-label="Close dialog"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+      <div class="md-dialog-content">
+        <h3>Requirements for Dataset File:</h3>
+        <ul>
+          <li>Comma separated CSV file.</li>
+          <li>The columns that needs to be selected for generating histograms, i.e. the Data Source column must be either integers or decimals.</li>
+          <li>No text is allowed for the columns selected for generating histograms.</li>
+        </ul>
+
+        <h3>Creation of Histogram:</h3>
+        <ul>
+          <li>After CSV upload, the user needs to select a column as Data source from the drop-down menu for creating histograms. The drop-down menu is generated from the uploaded file.</li>
+          <li>If there are no error with the data, the data from the respective column is used to generate the histograms.</li>
+          <li>For Filter, the user needs to select some other column. This column may contain non-numerical data.</li>
+          <li>User then needs to select a filter value for top/left and bottom/right distribution. The values for these filters are the distinct values from the column selected as filter.</li>
+          <li>The data extracted from the column selected as data source, is then filtered into two groups based on the filter values selected for top/left and bottom/right distributions.</li>
+          <li>The filtered data is then used to generate histograms.</li>
+        </ul>
+
+        <h3>Example Dataset:</h3>
+        <table class="table">
+          <thead>
+          <tr>
+            <td>Marks</td>
+            <td>Status</td>
+            <td>Country</td>
+            <td>Grade</td>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>10</td>
+            <td>Bachelor</td>
+            <td>Germany</td>
+            <td>3.0</td>
+          </tr>
+          <tr>
+            <td>23</td>
+            <td>Master</td>
+            <td>Spain</td>
+            <td>2.3</td>
+          </tr>
+          <tr>
+            <td>30</td>
+            <td>Master</td>
+            <td>Germany</td>
+            <td>2.0</td>
+          </tr>
+          <tr>
+            <td>15</td>
+            <td>Doctoral</td>
+            <td>USA</td>
+            <td>2.7</td>
+          </tr>
+          <tr>
+            <td>30</td>
+            <td>Doctoral</td>
+            <td>Spain</td>
+            <td>2.0</td>
+          </tr>
+          </tbody>
+        </table>
+        <p>
+          For e.g., for the given data set example, consider that the user selects <i>Marks</i> as the data source column and <i>Status</i> as the filter column.
+          For top/left and bottom/right filter values, <i>Bachelor, Master and Doctoral</i> will be available. Let's say the user selects <i>Bachelor</i> for top/left distribution.
+          Then the data from <i>Marks</i> column will be selected, whose rows have <i>Bachelor</i> in the <i>Status</i> column. In this case it will be: <i>10</i> only.
+          Similarly, the data from the <i>Marks</i> column will also be selected for bottom/right distribution filter value.
+        </p>
+      </div>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="closeDialog()">
+        Close
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

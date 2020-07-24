@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- build:css(.) styles/vendor.css -->
+    <!-- bower:css -->
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/angular-material/angular-material.css" />
+    <link rel="stylesheet" href="bower_components/angular-material-expansion-panel/dist/md-expansion-panel.css" />
+    <link rel="stylesheet" href="bower_components/md-color-menu/md-color-menu.css" />
+    <link rel="stylesheet" href="bower_components/lf-ng-md-file-input/dist/lf-ng-md-file-input.css" />
+    <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:css(.tmp) styles/main.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/about.css">
+    <link rel="stylesheet" href="styles/plot.css">
+    <link rel="stylesheet" href="styles/angular-csv-import.css">
+    <link rel="stylesheet" href="styles/matrix.css">
+    <link rel="stylesheet" href="styles/alternative-vis.css">
+    <link rel="stylesheet" href="styles/comparison.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- endbuild -->
+  </head>
+  <body ng-app="codeApp">
+    <!--[if lte IE 8]>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+
+    <!-- Add your site or application content here -->
+<!--     <div class="header">
+      <div class="navbar navbar-default" role="navigation">
+        <div class="container">
+          <div class="navbar-header">
+
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#js-navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            <a class="navbar-brand" href="#/">v-plot designer</a>
+          </div>
+
+          <div class="collapse navbar-collapse" id="js-navbar-collapse" ng-controller="HeaderCtrl">
+
+            <ul class="nav navbar-nav">
+              <li ng-class="{ active: isActive('/')}">              <a><span ng-click="navigateTo('/')">home</span></a></li>
+              <li ng-class="{ active: isActive('/plot')}">          <a><span ng-click="navigateTo('/plot')">v-plot</span></a></li>
+              <li ng-class="{ active: isActive('/vplotmatrix')}">   <a><span ng-click="navigateTo('/vplotmatrix')">v-plot matrix</span></a></li>
+              <li ng-class="{ active: isActive('/about')}">         <a><span ng-click="navigateTo('/about')">team</span></a></li>
+            </ul>
+
+          </div>
+        </div>
+      </div>
+    </div>
+ -->
+    <md-content style="min-height: 94%; display: flex; justify-content: center; align-items: center;">
+      <div ng-view="plot"></div>
+      <!--<div class="container" id="parent-div"></div>-->
+    </md-content>
+
+
+    <div class="footer">
+      <div class="container">
+        <p>
+          <span class="glyphicon glyphicon-heart"></span> from the <a href="/#!/about">v-plot team</a>
+          <span style="display:inline-block; width: 10px;"></span>
+          &bull;
+          <span style="display:inline-block; width: 10px;"></span>
+          <a href="https://www.vis.uni-konstanz.de/en/imprint/">Imprint</a>
+          <span style="display:inline-block; width: 10px;"></span>
+          &bull;
+          <span style="display:inline-block; width: 10px;"></span>
+          <a href="/#!/dataprotection">Data Protection</a>
+        </p>
+      </div>
+    </div>
+
+
+    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
+     <!--<script>-->
+       <!--!function(A,n,g,u,l,a,r){A.GoogleAnalyticsObject=l,A[l]=A[l]||function(){-->
+       <!--(A[l].q=A[l].q||[]).push(arguments)},A[l].l=+new Date,a=n.createElement(g),-->
+       <!--r=n.getElementsByTagName(g)[0],a.src=u,r.parentNode.insertBefore(a,r)-->
+       <!--}(window,document,'script','https://www.google-analytics.com/analytics.js','ga');-->
+
+       <!--ga('create', 'UA-XXXXX-X');-->
+       <!--ga('send', 'pageview');-->
+    <!--</script>-->
+
+    <!-- build:js(.) scripts/vendor.js -->
+    <!-- bower:js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="bower_components/angular-animate/angular-animate.js"></script>
+    <script src="bower_components/angular-cookies/angular-cookies.js"></script>
+    <script src="bower_components/angular-resource/angular-resource.js"></script>
+    <script src="bower_components/angular-route/angular-route.js"></script>
+    <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+    <script src="bower_components/angular-touch/angular-touch.js"></script>
+    <script src="bower_components/angular-aria/angular-aria.js"></script>
+    <script src="bower_components/angular-messages/angular-messages.js"></script>
+    <script src="bower_components/angular-material/angular-material.js"></script>
+    <script src="bower_components/underscore/underscore.js"></script>
+    <script src="bower_components/d3/d3.js"></script>
+    <script src="bower_components/angular-material-expansion-panel/dist/md-expansion-panel.js"></script>
+    <script src="bower_components/md-color-menu/md-color-menu.js"></script>
+    <script src="bower_components/angular-downloadsvg-directive/angular-downloadsvg-directive.js"></script>
+    <script src="bower_components/lf-ng-md-file-input/dist/lf-ng-md-file-input.js"></script>
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <!-- build:js({.tmp,app}) scripts/scripts.js -->
+
+      <script src="scripts/app.js"></script>
+
+      <script src="scripts/controllers/main.js"></script>
+      <script src="scripts/controllers/plot.js"></script>
+      <script src="scripts/controllers/matrixController.js"></script>
+      <script src="scripts/controllers/header.js"></script>
+      <script src="scripts/controllers/about.js"></script>
+      <script src="scripts/controllers/comparison.js"></script>
+
+      <script src="scripts/directives/vPlotDirective.js"></script>
+      <script src="scripts/directives/vPlotMatrixDirective.js"></script>
+
+      <script src="scripts/visualizations/vplot.js"></script>
+
+      <script src="scripts/angular-csv-import.js"></script>
+      <script src="scripts/visualizations/vplotmatrix.js"></script>
+
+      <script src="scripts/visualizations/barchart-separate.js"></script>
+      <script src="scripts/visualizations/barchart-grouped.js"></script>
+      <script src="scripts/visualizations/barchart-cumulative.js"></script>
+      <script src="scripts/visualizations/barchart-stacked.js"></script>
+      <script src="scripts/visualizations/barchart-mirrored.js"></script>
+      <script src="scripts/visualizations/barchart-broken-line.js"></script>
+      <script src="scripts/visualizations/broken-line.js"></script>
+
+      <script src="scripts/visualizations/density-distribution-separate.js"></script>
+      <script src="scripts/visualizations/density-distribution-separate-rotated.js"></script>
+      <script src="scripts/visualizations/density-distribution-combined.js"></script>
+      <script src="scripts/visualizations/density-cumulative-combined.js"></script>
+
+      <script src="scripts/visualizations/gradient-separate.js"></script>
+
+      <script src="scripts/visualizations/boxplot.js"></script>
+      <script src="scripts/visualizations/error-bars-bar.js"></script>
+      <script src="scripts/visualizations/error-bars-line.js"></script>
+
+      <script src="scripts/visualizations/violin-plot.js"></script>
+      <script src="scripts/visualizations/split-violin-plot.js"></script>
+      <script src="scripts/visualizations/bean-plot.js"></script>
+      <script src="scripts/visualizations/bean-plot-asymm.js"></script>
+
+      <script src="scripts/visualizations/survey-comparison-chart.js"></script>
+
+
+      <script src="scripts/services/alternativevisservice.js"></script>
+      <script src="scripts/services/histogramfunctions.js"></script>
+      <script src="scripts/services/datagenerationservice.js"></script>
+      <script src="scripts/services/propertyservice.js"></script>
+      <script src="scripts/services/plotguideservice.js"></script>
+      <!-- endbuild -->
+
+    <script src="https://cdn.jsdelivr.net/npm/vega@4.0.0-rc.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@2.6.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@3.16.0"></script>
+
+</body>
+</html>

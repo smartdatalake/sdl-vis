@@ -1,0 +1,123 @@
+
+<!-- Template to upload new data / paste data and select the name of the plot etc. -->
+
+<div style="width:800px; margin: auto" ng-cloak>
+  <div layout="column" layout-xs="column">
+
+    <md-card>
+      <md-card-title>
+        <md-card-title-text>
+          <span class="md-headline">Data</span>
+        </md-card-title-text>
+      </md-card-title>
+
+      <md-card-content>
+        <md-input-container class="full-width">
+          <label>Title of the v-plot</label>
+          <input placeholder="Title of the Plot" ng-model="$parent.titleOfThePlot">
+        </md-input-container>
+
+        <!--<md-input-container class="full-width">-->
+          <!--<label>Reordering Algorithm</label>-->
+          <!--<md-select ng-model="$parent.selectedReorderingAlgo" ng-disabled="$parent.order === undefined" ng-change="$parent.reorderAndUpdate()">-->
+            <!--<md-optgroup label="items">-->
+             <!--<md-option ng-repeat="item in $parent.reorderingAlgos" ng-value="item.id">{{item.name}}</md-option>-->
+           <!--</md-optgroup>-->
+          <!--</md-select>-->
+        <!--</md-input-container>-->
+
+        <br/>
+
+        <md-nav-bar
+          md-selected-nav-item="currentNavItem"
+          nav-bar-aria-label="navigation links">
+          <!--<md-nav-item md-nav-click="goto('pasteData')" name="pasteData">-->
+            <!--Copy & Paste Data-->
+          <!--</md-nav-item>-->
+          <md-nav-item md-nav-click="goto('uploadCsv')" name="uploadCsv">
+            Upload Data from CSV
+          </md-nav-item>
+          <md-nav-item md-nav-click="goto('exampleData')" name="exampleData">
+            Examples
+          </md-nav-item>
+        </md-nav-bar>
+
+        <div class="ext-content">
+
+          <md-card ng-if="currentNavItem === 'uploadCsv'">
+            <md-card-title>
+              <md-card-title-text>
+                <!--<span class="md-headline">Upload CSV</span>-->
+                <span class="md-subhead">Please select a *.csv (see example for the file structure).</span>
+              </md-card-title-text>
+            </md-card-title>
+
+            <md-card-content>
+
+              <ng-csv-import content="csv.content"
+                             material
+                             md-button-class="md-button md-raised"
+                             md-button-title="Upload &nbsp;&nbsp;&nbsp;&nbsp;"
+                             result="csv.result"
+                             accept="csv.accept"
+                             separator="csv.separator"
+                             callback="fileParsed"></ng-csv-import>
+              <br/>
+
+              <div layout="column">
+                <p ng-if="value.missingValues > 0" ng-repeat="(key, value) in distributionsValCount">
+                  <span>Column:
+                    <label md-colors="{color: 'red-A200'}">{{key}}</label>
+                      has
+                    <label md-colors="{color: 'red-A200'}">{{value.missingValues}}</label>
+                      missing value(s) out of
+                    <label md-colors="{color: 'red-A200'}">{{value.totalValues}}</label>
+                      total values.
+                  </label>
+                  </span>
+                </p>
+              </div>
+
+              <md-input-container class="full-width">
+                <label>Data Type: </label><br/>
+                <md-radio-group ng-model="$parent.$parent.continuous" layout="row">
+                  <md-radio-button ng-value='false' ng-disabled="$parent.isDecimal">Discrete</md-radio-button>
+                  <md-radio-button ng-value='true' ng-disabled="$parent.isDecimal">Continuous</md-radio-button>
+                </md-radio-group>
+              </md-input-container>
+
+              <!-- #bis, only if data type = continuous. -->
+              <div ng-if="$parent.$parent.continuous">
+                <md-slider-container>
+                  <md-slider min="2" max="20" ng-model="$parent.$parent.$parent.numOfBins" aria-label="Number of bins"></md-slider>
+                  <md-input-container>
+                    <input type="number" ng-model="$parent.$parent.$parent.numOfBins" aria-label="Number of bins">
+                  </md-input-container>
+                </md-slider-container>
+                <p style="text-align: center">
+                  Select the number of bins for the histogram.
+                </p>
+              </div>
+
+            </md-card-content>
+          </md-card>
+
+          <md-card ng-if="currentNavItem === 'exampleData'">
+            <md-card-title>
+              <md-card-title-text>
+                <span class="md-headline">Example dataset for the v-plot matrix</span>
+                <md-button style="width:280px;" class="md-raised" ng-click="downloadExampleDataset()">
+                  <img src="images/ic_download.png" height="25px"><span style="width: 20px"></span>
+                  Download
+                </md-button>
+                Download example csv file with three groups and 100 random values each.
+              </md-card-title-text>
+            </md-card-title>
+          </md-card>
+        </div>
+
+      </md-card-content>
+    </md-card>
+
+  </div>
+</div>

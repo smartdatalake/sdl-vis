@@ -1,0 +1,77 @@
+{
+  "name": "visual-explorer",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "@types/d3": "^5.7.2",
+    "@types/jest": "24.0.17",
+    "@types/js-clipper": "^0.0.28",
+    "@types/matter-js": "^0.10.5",
+    "@types/memoize-one": "^4.1.1",
+    "@types/node": "12.7.1",
+    "@types/rc-slider": "^8.6.4",
+    "@types/react": "16.9.1",
+    "@types/react-dom": "16.8.5",
+    "@types/react-redux": "^7.1.1",
+    "create-react-component-folder": "^0.1.30",
+    "husky": "^4.2.1",
+    "prettier": "^1.19.1",
+    "tslint": "^6.0.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-eslint-rules": "^5.4.0",
+    "tslint-react": "^4.2.0",
+    "redux-devtools-extension": "^2.13.8",
+    "react-scripts": "3.1.0",
+    "typescript": "3.5.3",
+    "node-sass": "^4.13.0",
+    "immer": "^6.0.5"
+  },
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "d3": "^5.11.0",
+    "js-clipper": "git+https://github.com/mathisonian/JsClipper.git",
+    "matter-js": "^0.14.2",
+    "memoize-one": "^5.1.0",
+    "rc-slider": "^8.6.13",
+    "react": "^16.9.0",
+    "react-bootstrap": "^1.0.0-beta.11",
+    "react-dom": "^16.9.0",
+    "react-redux": "^7.1.0",
+    "react-sizeme": "^2.6.12",
+    "typesafe-actions": "^4.4.2"
+  },
+  "scripts": {
+    "tslint": "tslint -c tslint.json 'src/**/*.{ts,tsx}' --fix",
+    "prettier": "prettier --write 'src/**/*.{js,ts,tsx}'",
+    "codestyle": "npm run tslint && npm run prettier",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run codestyle && git update-index --again"
+    }
+  },
+  "crcf": [
+    "scss",
+    "typescript",
+    "notest",
+    "proptypes"
+  ]
+}

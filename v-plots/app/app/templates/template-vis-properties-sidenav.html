@@ -1,0 +1,741 @@
+<!-- The sidenav menu to change the visualization parameters.  -->
+
+<md-sidenav class="md-sidenav-right" md-component-id="vizProp">
+
+  <md-toolbar class="md-theme-indigo">
+    <h1 class="md-toolbar-tools">
+      <md-button class="md-icon-button" ng-click="toggleSideNav('vizProp')">
+        <md-icon md-svg-src="images/ic_close_black_48px.svg"></md-icon>
+      </md-button>&nbsp;&nbsp;
+      Visualization Properties
+    </h1>
+  </md-toolbar>
+
+  <md-content>
+    <md-expansion-panel-group md-component-id="vizProp" multiple>
+
+      <!-- ======================================================================================================== -->
+      <!-- Default Layouts -->
+      <md-expansion-panel md-component-id="defaultLayouts" ng-click="$parent.panelClicked('defaultLayouts')">
+        <md-expansion-panel-collapsed>
+          <div class="md-title menutitle">Default Layouts</div>
+        </md-expansion-panel-collapsed>
+
+        <md-expansion-panel-expanded>
+          <md-expansion-panel-header>
+            <div class="md-title menutitle">Default Layouts</div>
+          </md-expansion-panel-header>
+
+          <md-expansion-panel-content>
+            <md-grid-list md-cols="4" md-gutter="5px" md-row-height="100px">
+              <md-grid-tile ng-repeat="layout in $parent.layouts">
+                <div ng-click="$parent.$parent.changeLayout(layout)">
+                  <img ng-src="{{layout.thumbnail}}" height="100px" class="md-card-image radius">
+                  <!--<md-grid-tile-footer style="background: rgba(0, 0, 0, 0.25);"><h3 style="text-align: left">{{layout.title}}</h3></md-grid-tile-footer>-->
+                </div>
+              </md-grid-tile>
+            </md-grid-list>
+          </md-expansion-panel-content>
+        </md-expansion-panel-expanded>
+      </md-expansion-panel>
+
+
+      <!-- ======================================================================================================== -->
+      <!-- GENERAL PROPERTIES -->
+      <md-expansion-panel md-component-id="generalProp" ng-click="$parent.panelClicked('generalProp')">
+        <md-expansion-panel-collapsed>
+          <div class="md-title menutitle">General Properties</div>
+        </md-expansion-panel-collapsed>
+
+        <md-expansion-panel-expanded>
+          <md-expansion-panel-header>
+            <div class="md-title menutitle">General Properties</div>
+          </md-expansion-panel-header>
+
+          <md-expansion-panel-content>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span>Layout of the v-plot</span>
+              <md-select ng-model="$parent.properties.orientation" placeholder="" class="md-no-underline">
+                <md-option value="vertical">vertical (default)</md-option>
+                <md-option value="horizontal">horizontal</md-option>
+              </md-select>
+            </div>
+
+
+            <!-- ------------------------------------------------------------------ -->
+            <div class="spaceBetweenMenuEntry"></div>
+            <h5>Configure Title and Labels</h5>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Show the title
+              <md-switch md-invert ng-model="$parent.properties.showTitleOfThePlot"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Show the names / labels of the two distributions
+              <md-switch md-invert ng-model="$parent.properties.showLabelsDistributionNames"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Show border around plot
+              <md-switch md-invert ng-model="$parent.properties.showBorderAroundPlot"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Show labels of histogram bins
+              <md-switch md-invert ng-model="$parent.properties.showLabelsHistogramBins"></md-switch>
+            </div>
+
+
+            <!-- ------------------------------------------------------------------ -->
+            <div class="spaceBetweenMenuEntry"></div>
+            <h5>Configure Size</h5>
+
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span ng-if="$parent.properties.orientation === 'horizontal'">Width</span>
+              <span ng-if="$parent.properties.orientation === 'vertical'">Height</span>
+              <md-slider-container>
+                <md-slider min="200" max="1000" step="1" ng-model="$parent.properties.widthOfPlot" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span ng-if="$parent.properties.orientation === 'horizontal'">Height</span>
+              <span ng-if="$parent.properties.orientation === 'vertical'">Width</span>
+              <md-slider-container>
+                <md-slider min="200" max="1000" step="1" ng-model="$parent.properties.heightOfPlot" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span>Space between histograms</span>
+              <md-slider-container>
+                <md-slider min="0" max="100" step="1" ng-model="$parent.properties.spaceBetweenPlots" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span>Scale of histogram height</span>
+              <md-slider-container>
+                <md-slider min="0" max="1" step="0.01" ng-model="$parent.properties.scaleDomainOfBinHeight" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div ng-if="$parent.properties.showTitleOfThePlot" class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span>Font size title</span>
+              <md-slider-container>
+                <md-slider min="1" max="50" step="1" ng-model="$parent.properties.fontSizeTitle" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div ng-if="$parent.properties.showLabelsDistributionNames" class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span>Font size distribution names</span>
+              <md-slider-container>
+                <md-slider min="1" max="50" step="1" ng-model="$parent.properties.fontSizeGroupNames" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span>Font size statistic</span>
+              <md-slider-container>
+                <md-slider min="1" max="50" step="1" ng-model="$parent.properties.fontSizeValues" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span>Font size grid</span>
+              <md-slider-container>
+                <md-slider min="1" max="50" step="1" ng-model="$parent.properties.fontSizeGrid" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div ng-if="$parent.properties.showLabelsHistogramBins" class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span>Font size histogram bin names</span>
+              <md-slider-container>
+                <md-slider min="1" max="50" step="1" ng-model="$parent.properties.fontSizeHistogramBins" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div ng-if="$parent.properties.showLabelHeightInPercentage" class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span>Font size label histogram bin height</span>
+              <md-slider-container>
+                <md-slider min="1" max="50" step="1" ng-model="$parent.properties.fontSizeHistogramBinHeight" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div ng-if="$parent.properties.showStatistics" class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <span>Size of the statistic</span>
+              <md-slider-container>
+                <md-slider min="1" max="10" step="1" ng-model="$parent.properties.sizeStatistic" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+
+            <!-- ------------------------------------------------------------------ -->
+            <div class="spaceBetweenMenuEntry"></div>
+            <h5>Configure Color</h5>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Same background color for both distributions
+              <md-switch md-invert ng-model="$parent.properties.colorBackground.bothDistributionsSameColor"></md-switch>
+            </div>
+
+            <!-- Selecting the background color, if both distributions have the same color. -->
+            <div class="heightMenuEntry" ng-if="$parent.properties.colorBackground.bothDistributionsSameColor" layout="row" layout-align="space-between center">
+              <p>Background color</p>
+              <md-color-menu color="$parent.properties.colorBackground.colorBoth">
+                <md-button class="md-icon-button">
+                  <md-tooltip md-direction="left">Select Color</md-tooltip>
+                  <md-icon ng-style="{color:$parent.properties.colorBackground.colorBoth.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                </md-button>
+              </md-color-menu>
+            </div>
+
+
+            <!-- Selecting the background color for the **LEFT / TOP** distribution, if both distributions have a different color. -->
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center" ng-if="!$parent.properties.colorBackground.bothDistributionsSameColor">
+              <p ng-if="$parent.properties.orientation === 'horizontal'">Background color top distribution</p>
+              <p ng-if="$parent.properties.orientation === 'vertical'">Background color left distribution</p>
+              <md-color-menu color="$parent.properties.colorBackground.colorLeft">
+                <md-button class="md-icon-button">
+                  <md-tooltip md-direction="left">Select Color</md-tooltip>
+                  <md-icon ng-style="{color:$parent.properties.colorBackground.colorLeft.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                </md-button>
+              </md-color-menu>
+            </div>
+
+
+            <!-- Selecting the background color for the **RIGHT / BOTTOM** distribution, if both distributions have a different color. -->
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center" ng-if="!$parent.properties.colorBackground.bothDistributionsSameColor">
+              <p ng-if="$parent.properties.orientation === 'horizontal'">Background color bottom distribution</p>
+              <p ng-if="$parent.properties.orientation === 'vertical'">Background color right distribution</p>
+              <md-color-menu color="$parent.properties.colorBackground.colorRight">
+                <md-button class="md-icon-button">
+                  <md-tooltip md-direction="left">Select Color</md-tooltip>
+                  <md-icon ng-style="{color:$parent.properties.colorBackground.colorRight.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                </md-button>
+              </md-color-menu>
+            </div>
+
+
+            <!-- Selecting the background color **BETWEEN** the two distributions, if both distributions have a different color. -->
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center" ng-if="!$parent.properties.colorBackground.bothDistributionsSameColor">
+              <p>Background color between distributions</p>
+              <md-color-menu color="$parent.properties.colorBackground.colorBetween">
+                <md-button class="md-icon-button">
+                  <md-tooltip md-direction="left">Select Color</md-tooltip>
+                  <md-icon ng-style="{color:$parent.properties.colorBackground.colorBetween.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                </md-button>
+              </md-color-menu>
+            </div>
+
+
+            <!-- Color for the margin  -->
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <p>Margin color</p>
+              <md-color-menu color="$parent.properties.colorBackgroundMargin">
+                <md-button class="md-icon-button">
+                  <md-tooltip md-direction="left">Select Color</md-tooltip>
+                  <md-icon ng-style="{color:$parent.properties.colorBackgroundMargin.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                </md-button>
+              </md-color-menu>
+            </div>
+
+            <!-- Color for the labels  -->
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              <p>Label color</p>
+              <md-color-menu color="$parent.properties.colorLabel">
+                <md-button class="md-icon-button">
+                  <md-tooltip md-direction="left">Select Color</md-tooltip>
+                  <md-icon ng-style="{color:$parent.properties.colorLabel.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                </md-button>
+              </md-color-menu>
+            </div>
+
+            <!-- ------------------------------------------------------------------ -->
+            <div class="spaceBetweenMenuEntry"></div>
+            <h5>Configure the Grid</h5>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Show grid &nbsp;
+              <md-switch md-invert ng-model="$parent.properties.showGrid"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Grid within the plot
+              <md-switch md-invert ng-model="$parent.properties.gridWithin"></md-switch>
+            </div>
+
+            <div ng-if="$parent.properties.showGrid">
+
+              <!-- Position of grid (horizontal) -->
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center"  ng-if="$parent.properties.orientation === 'horizontal'">
+                <span>Position of grid labels</span>
+                <md-select ng-model="$parent.properties.showGridLabels" placeholder="" class="md-no-underline">
+                  <md-option value="right">Right</md-option>
+                  <md-option value="left">Left</md-option>
+                  <md-option value="none">No labels</md-option>
+                </md-select>
+              </div>
+
+              <!-- Position of grid (vertical) -->
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center"  ng-if="$parent.properties.orientation === 'vertical'">
+                <span>Position of grid labels</span>
+                <md-select ng-model="$parent.properties.showGridLabels" placeholder="" class="md-no-underline">
+                  <md-option value="right">Top</md-option>
+                  <md-option value="left">Bottom</md-option>
+                  <md-option value="none">No labels</md-option>
+                </md-select>
+              </div>
+
+              <!-- Grid granularity -->
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+                <span>Grid granularity</span>
+                <md-select ng-model="$parent.properties.gridGranularity" placeholder="" class="md-no-underline">
+                  <md-option value="0.2">[0.2, 0.4, ...]</md-option>
+                  <md-option value="0.1">[0.1, 0.2, ...]</md-option>
+                  <md-option value="0.05">[0.05, 0.1, ...]</md-option>
+                  <md-option value="0.01">[0.01, 0.02, ...]</md-option>
+                </md-select>
+              </div>
+
+            </div>
+
+
+
+            <!-- ------------------------------------------------------------------ -->
+            <div class="spaceBetweenMenuEntry"></div>
+            <h5>Configure Range of Distributions</h5>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Manually select range (min/max) of distribution &nbsp;
+              <md-switch md-invert ng-model="$parent.properties.distributionRangeAuto"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center" ng-if="$parent.properties.distributionRangeAuto">
+              Select min and max of the plot
+              <div>
+                min:
+                <md-input-container>
+                  <input style="width: 30px" type="number" ng-model="$parent.properties.distributionRangeMin" aria-label="Customized minimum value">
+                </md-input-container>
+                <span style="width: 15px;"></span>
+                max: <md-input-container>
+                <input style="width: 30px" type="number" ng-model="$parent.properties.distributionRangeMax" aria-label="Customized maximum value">
+              </md-input-container>
+              </div>
+            </div>
+
+          </md-expansion-panel-content>
+
+        </md-expansion-panel-expanded>
+      </md-expansion-panel>
+
+      <!-- ======================================================================================================== -->
+      <!-- LOCAL ANALYSIS TASKS -- HISTOGRAM PROPERTIES -->
+      <md-expansion-panel md-component-id="histogramProp" ng-click="$parent.panelClicked('histogramProp')">
+        <md-expansion-panel-collapsed>
+          <div class="md-title menutitle">Local Tasks (Histogram Properties)</div>
+        </md-expansion-panel-collapsed>
+
+        <md-expansion-panel-expanded>
+          <md-expansion-panel-header>
+            <div class="md-title menutitle">Local Tasks (Histogram Properties)</div>
+          </md-expansion-panel-header>
+
+          <md-expansion-panel-content>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Show histogram
+              <md-switch md-invert ng-model="$parent.properties.showHistograms"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Show difference histogram
+              <md-switch md-invert ng-model="$parent.properties.showDifferenceHistogram"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showHistograms" layout="row" layout-align="space-between center">
+              Show labels for frequency of each bin
+              <md-switch md-invert ng-model="$parent.properties.showLabelHeightInPercentage"></md-switch>
+            </div>
+
+
+            <!-- ------------------------------------------------------------------ -->
+            <div class="spaceBetweenMenuEntry"></div>
+            <h5 ng-if="$parent.properties.showHistograms">Configure Histogram</h5>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showHistograms" layout="row" layout-align="space-between center">
+              <p>Color</p>
+              <md-color-menu color="$parent.properties.colorHistogram">
+                <md-button class="md-icon-button">
+                  <md-tooltip md-direction="left">Select Color</md-tooltip>
+                  <md-icon ng-style="{color:$parent.properties.colorHistogram.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                </md-button>
+              </md-color-menu>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showHistograms" layout="row" layout-align="space-between center">
+              <span>Transparency</span>
+              <md-slider-container>
+                <md-slider md-invert min="0" max="1" step="0.01" ng-model="$parent.properties.colorHistogramOpacity" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+
+            <!-- ------------------------------------------------------------------ -->
+            <div class="spaceBetweenMenuEntry"></div>
+            <h5 ng-if="$parent.properties.showDifferenceHistogram">Configure Difference Histogram</h5>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showDifferenceHistogram" layout="row" layout-align="space-between center">
+              <p>Color</p>
+              <md-color-menu color="$parent.properties.colorInnerHistogram">
+                <md-button class="md-icon-button">
+                  <md-tooltip md-direction="left">Select Color</md-tooltip>
+                  <md-icon ng-style="{color:$parent.properties.colorInnerHistogram.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                </md-button>
+              </md-color-menu>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showDifferenceHistogram" layout="row" layout-align="space-between center">
+              <span>Transparency</span>
+              <md-slider-container>
+                <md-slider md-invert min="0" max="1" step="0.01" ng-model="$parent.properties.colorInnerHistogramOpacity" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showDifferenceHistogram" layout="row" layout-align="space-between center">
+              <span>Size</span>
+              <md-slider-container>
+                <md-slider min="0" max="1" step="0.01" ng-model="$parent.properties.sizeInnerHistogram" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <!-- ------------------------------------------------------------------ -->
+            <div class="spaceBetweenMenuEntry"></div>
+            <h5 ng-if="$parent.properties.showLabelHeightInPercentage">Configure Labels</h5>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showLabelHeightInPercentage" layout="row" layout-align="space-between center">
+              <p>Color</p>
+              <md-color-menu color="$parent.properties.colorLabelHeightInPercentage">
+                <md-button class="md-icon-button">
+                  <md-tooltip md-direction="left">Select Color</md-tooltip>
+                  <md-icon ng-style="{color:$parent.properties.colorLabelHeightInPercentage.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                </md-button>
+              </md-color-menu>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showLabelHeightInPercentage" layout="row" layout-align="space-between center">
+              <span>Transparency</span>
+              <md-slider-container>
+                <md-slider md-invert min="0" max="1" step="0.01" ng-model="$parent.properties.opacityLabelHeightInPercentage" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+
+          </md-expansion-panel-content>
+
+        </md-expansion-panel-expanded>
+      </md-expansion-panel>
+
+      <!-- ======================================================================================================== -->
+      <!-- GLOBAL ANALYSIS TASKS -- DENSITY PROPERTIES -->
+      <md-expansion-panel md-component-id="densityProp" ng-click="$parent.panelClicked('densityProp')">
+        <md-expansion-panel-collapsed>
+          <div class="md-title menutitle">Global Tasks (Density Properties)</div>
+        </md-expansion-panel-collapsed>
+
+        <md-expansion-panel-expanded>
+          <md-expansion-panel-header>
+            <div class="md-title menutitle">Global Tasks (Density Properties)</div>
+          </md-expansion-panel-header>
+
+          <md-expansion-panel-content>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Show density shape
+              <md-switch md-invert ng-model="$parent.properties.showDensityShape"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Show difference density shape
+              <md-switch md-invert ng-model="$parent.properties.showDifferenceDensityShape"></md-switch>
+            </div>
+
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showDensityShape" layout="row" layout-align="space-between center">
+              <span>Type of density shape</span>
+              <md-select ng-model="$parent.properties.densityVisualization" placeholder="" class="md-no-underline">
+                <md-option value="densityBasedOnHist">Shape based on histogram (default)</md-option>
+                <md-option value="kernelDensity">Kernel density estimation</md-option>
+              </md-select>
+            </div>
+
+
+            <!-- ------------------------------------------------------------------ -->
+            <div ng-if="$parent.properties.showDensityShape || $parent.properties.showDifferenceDensityShape">
+
+              <div class="spaceBetweenMenuEntry"></div>
+              <h5>Configure Shape</h5>
+
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+                <p ng-if="$parent.properties.orientation === 'horizontal'">Color top distribution</p>
+                <p ng-if="$parent.properties.orientation === 'vertical'">Color left distribution</p>
+                <md-color-menu color="$parent.properties.kernelDensityColorTop">
+                  <md-button class="md-icon-button">
+                    <md-tooltip md-direction="left">Select Color</md-tooltip>
+                    <md-icon ng-style="{color:$parent.properties.kernelDensityColorTop.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                  </md-button>
+                </md-color-menu>
+              </div>
+
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+                <p ng-if="$parent.properties.orientation === 'horizontal'">Color bottom distribution</p>
+                <p ng-if="$parent.properties.orientation === 'vertical'">Color right distribution</p>
+                <md-color-menu color="$parent.properties.kernelDensityColorBottom">
+                  <md-button class="md-icon-button">
+                    <md-tooltip md-direction="left">Select Color</md-tooltip>
+                    <md-icon ng-style="{color:$parent.properties.kernelDensityColorBottom.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                  </md-button>
+                </md-color-menu>
+              </div>
+
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+                <span>Transparency of density shapes</span>
+                <md-slider-container>
+                  <md-slider md-invert min="0" max="1" step="0.01" ng-model="$parent.properties.colorShapesOpacity" aria-label=""></md-slider>
+                </md-slider-container>
+              </div>
+
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center" ng-if="$parent.properties.showDifferenceDensityShape">
+                <span>Transparency of difference density shapes</span>
+                <md-slider-container>
+                  <md-slider md-invert min="0" max="1" step="0.01" ng-model="$parent.properties.colorDifferenceShapesOpacity" aria-label=""></md-slider>
+                </md-slider-container>
+              </div>
+
+            </div>
+
+
+            <!-- ------------------------------------------------------------------ -->
+            <div ng-if="$parent.properties.showDensityShape && $parent.properties.densityVisualization == 'kernelDensity'">
+              <div class="spaceBetweenMenuEntry"></div>
+              <h5>Configure Kernel Density</h5>
+
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+                Show kernel density ticks (for testing)
+                <md-switch md-invert ng-model="$parent.properties.showKernelDensityTicks"></md-switch>
+              </div>
+
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+                <span>Bandwidth (smoothing) of kernel density</span>
+                <md-slider-container>
+                  <md-slider min="0" max="2" step="0.1" ng-model="$parent.properties.kernelDensityBandwidth" aria-label=""></md-slider>
+                </md-slider-container>
+              </div>
+
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+                <span>Number of ticks</span>
+                <md-slider-container>
+                  <md-slider min="1" max="20" step="0.1" ng-model="$parent.properties.kernelDensityNumTicks" aria-label=""></md-slider>
+                </md-slider-container>
+              </div>
+
+              <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+                <span>Height of kernel density</span>
+                <md-slider-container>
+                  <md-slider min="0" max="1" step="0.1" ng-model="$parent.properties.maxKernelDensityHeight" aria-label=""></md-slider>
+                </md-slider-container>
+              </div>
+            </div>
+
+
+          </md-expansion-panel-content>
+
+        </md-expansion-panel-expanded>
+      </md-expansion-panel>
+
+
+      <!-- ======================================================================================================== -->
+      <!-- AGGREGATED ANALYSIS TASKS -- STATISTIC PROPERTIES -->
+      <md-expansion-panel md-component-id="statisticProp" ng-click="$parent.panelClicked('statisticProp')">
+        <md-expansion-panel-collapsed>
+          <div class="md-title menutitle">Aggregated Tasks (Statistic Properties)</div>
+        </md-expansion-panel-collapsed>
+
+        <md-expansion-panel-expanded>
+          <md-expansion-panel-header>
+            <div class="md-title menutitle">Aggregated Tasks (Statistic Properties)</div>
+          </md-expansion-panel-header>
+
+          <md-expansion-panel-content>
+
+            <!-- enable / disable -->
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Show aggregated statistic
+              <md-switch md-invert ng-model="$parent.properties.showStatistics"></md-switch>
+            </div>
+
+            <!-- Statistic in foreground / background -->
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <span>Show statistic on top of the v-plot</span>
+              <md-switch md-invert ng-model="$parent.properties.statisticInForeground"></md-switch>
+            </div>
+
+            <!-- select the corresponding statistic -->
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <span>Statistic</span>
+              <md-select ng-model="$parent.properties.aggregatedStatistic" placeholder="Aggregated Statistic" class="md-no-underline">
+                <md-option value="mean+std">mean & standard deviation</md-option>
+                <md-option value="mean+serr">mean & standard error</md-option>
+                <md-option value="mean+quart">mean & quartiles</md-option>
+                <md-option value="median+quart">median & quartiles</md-option>
+              </md-select>
+            </div>
+
+            <!-- Position of statistic -->
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <span>Position of statistic</span>
+              <md-slider-container>
+                <md-slider min="0" max="1" step="0.01" ng-model="$parent.properties.positionOfMeanStatistic" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+
+            <!-- ------------------------------------------------------------------ -->
+            <div class="spaceBetweenMenuEntry"></div>
+            <h5 ng-if="$parent.properties.showStatistics">Comparison of Aggregated Statistic</h5>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <span ng-if="$parent.properties.aggregatedStatistic != 'median+quart'">Connect the means</span>
+              <span ng-if="$parent.properties.aggregatedStatistic == 'median+quart'">Connect the medians</span>
+              <md-switch md-invert ng-model="$parent.properties.connectMean"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <span ng-if="$parent.properties.aggregatedStatistic == 'mean+std'">Connect the standard deviations</span>
+              <span ng-if="$parent.properties.aggregatedStatistic == 'mean+serr'">Connect the standard errors</span>
+              <span ng-if="$parent.properties.aggregatedStatistic == 'mean+quart'">Connect the quartiles</span>
+              <span ng-if="$parent.properties.aggregatedStatistic == 'median+quart'">Connect the quartiles</span>
+              <md-switch md-invert ng-model="$parent.properties.connectStd"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <p>Select color for mean connection</p>
+              <div ng-disabled="!$parent.properties.connectMean" ng-class="{'disabled': !$parent.properties.connectMean}">
+                <md-color-menu color="$parent.properties.colorStatisticConnection">
+                  <md-button class="md-icon-button">
+                    <md-tooltip md-direction="left">Select Color</md-tooltip>
+                    <md-icon ng-style="{color:$parent.properties.colorStatisticConnection.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                  </md-button>
+                </md-color-menu>
+              </div>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <p>Select color for std connection</p>
+              <div ng-disabled="!$parent.properties.connectStd" ng-class="{'disabled': !$parent.properties.connectStd}">
+                <md-color-menu color="$parent.properties.colorStatisticConnectionStd">
+                  <md-button class="md-icon-button">
+                    <md-tooltip md-direction="left">Select Color</md-tooltip>
+                    <md-icon ng-style="{color:$parent.properties.colorStatisticConnectionStd.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                  </md-button>
+                </md-color-menu>
+              </div>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <span>Select transparency for mean connection</span>
+              <md-slider-container>
+                <md-slider md-invert ng-disabled="!$parent.properties.connectMean"  min="0" max="1" step="0.01" ng-model="$parent.properties.colorStatisticConnectionOpacity" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <span>Select transparency for std connection</span>
+              <md-slider-container>
+                <md-slider md-invert ng-disabled="!$parent.properties.connectStd"  min="0" max="1" step="0.01" ng-model="$parent.properties.colorStatisticConnectionStdOpacity" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+
+
+            <!-- ------------------------------------------------------------------ -->
+            <div class="spaceBetweenMenuEntry"></div>
+            <h5 ng-if="$parent.properties.showStatistics">Highlight Aggregated Statistic</h5>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <span ng-if="$parent.properties.aggregatedStatistic == 'mean+std'">Highlight area between the standard deviations</span>
+              <span ng-if="$parent.properties.aggregatedStatistic == 'mean+serr'">Highlight area between the standard errors</span>
+              <span ng-if="$parent.properties.aggregatedStatistic == 'mean+quart'">Highlight area between the quartiles</span>
+              <span ng-if="$parent.properties.aggregatedStatistic == 'median+quart'">Highlight area between the quartiles</span>
+              <md-switch md-invert ng-model="$parent.properties.statisticConnectionBackground"></md-switch>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <p>Select color for highlighted area</p>
+              <div ng-disabled="!$parent.properties.statisticConnectionBackground" ng-class="{'disabled': !$parent.properties.statisticConnectionBackground}">
+                <md-color-menu color="$parent.properties.colorStatisticBackgroundConnection">
+                  <md-button class="md-icon-button">
+                    <md-tooltip md-direction="left">Select Color</md-tooltip>
+                    <md-icon ng-style="{color:$parent.properties.colorStatisticBackgroundConnection.hex}" md-svg-src="images/ic_color_lens_48px.svg"></md-icon>
+                  </md-button>
+                </md-color-menu>
+              </div>
+            </div>
+
+            <div class="heightMenuEntry" ng-if="$parent.properties.showStatistics" layout="row" layout-align="space-between center">
+              <span>Select transparency for highlighted area</span>
+              <md-slider-container>
+                <md-slider md-invert ng-disabled="!$parent.properties.statisticConnectionBackground"  min="0" max="1" step="0.01" ng-model="$parent.properties.colorStatisticBackgroundConnectionOpacity" aria-label=""></md-slider>
+              </md-slider-container>
+            </div>
+
+
+          </md-expansion-panel-content>
+
+        </md-expansion-panel-expanded>
+      </md-expansion-panel>
+
+
+      <!-- ======================================================================================================== -->
+      <!-- EXPORT STYLE AND FONTS PROPERTIES -->
+      <md-expansion-panel md-component-id="styleAndFonts" ng-click="$parent.panelClicked('styleAndFonts')">
+        <md-expansion-panel-collapsed>
+          <div class="md-title menutitle">Export Style and Fonts</div>
+        </md-expansion-panel-collapsed>
+
+        <md-expansion-panel-expanded>
+          <md-expansion-panel-header>
+            <div class="md-title menutitle">Export Style and Fonts</div>
+          </md-expansion-panel-header>
+
+          <md-expansion-panel-content>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Export properties as JSON file
+              <a class="md-button md-raised" ng-href="{{$parent.url}}" download="v-plot-style.json" ng-click="$parent.exportStyleAndFonts($parent.properties)">
+                <md-tooltip md-direction="right">Export Visualization Properties as JSON</md-tooltip>Export
+              </a>
+            </div>
+
+            <div style="height: 25px;"></div>
+
+            <div class="heightMenuEntry" layout="row" layout-align="space-between center">
+              Import properties fromJSON file
+              <lf-ng-md-file-input lf-files="$parent.$parent.files" ng-change="$parent.importFileSelected()"
+                                   accept=".json" lf-browse-label="Import JSON" lf-placeholder="Visualization Properties..."></lf-ng-md-file-input>
+            </div>
+
+
+          </md-expansion-panel-content>
+
+        </md-expansion-panel-expanded>
+      </md-expansion-panel>
+
+    </md-expansion-panel-group>
+  </md-content>
+
+</md-sidenav>

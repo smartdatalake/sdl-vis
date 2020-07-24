@@ -1,0 +1,22 @@
+<div id="toast-container"></div>
+
+<!-- The buttons to open the menu and store the visualization -->
+<ng-include src="'templates/template-menu.html'"></ng-include>
+
+<!-- The menu to change the visualization parameters. -->
+<ng-include src="'templates/template-matrix-properties-sidenav.html'"></ng-include>
+
+<div layout="row" layout-xs="column" layout-align="center">
+  <v-plot-matrix-directive title-of-the-plot="titleOfThePlot"
+                           distributions="distributions"
+                           order="order"
+                           properties-matrix="propertiesMatrix"
+                           properties-v-plots="propertiesVPlots"
+                           properties-lower-v-plots="propertiesLowerVPlots"
+                           continuous="continuous"
+                           num-of-bins="numOfBins"
+  ></v-plot-matrix-directive>
+
+  <!-- Let the user upload new data and select the title of the plot etc. -->
+  <ng-include src="'templates/template-matrix-data.html'"></ng-include>
+</div>

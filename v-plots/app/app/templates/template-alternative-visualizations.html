@@ -1,0 +1,53 @@
+<md-dialog style="width: 3000px; height: 2000px" aria-label="Select Column">
+  <form ng-cloak>
+
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Alternative Visualizations</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="closeDialog()">
+          <md-icon md-svg-src="images/ic_close_black_48px.svg" aria-label="Close dialog"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <h3 style="margin-left: 20px">Histogram-based Charts</h3>
+    <div id="altHistogram"></div>
+
+    <h3 style="margin-left: 20px">Shape-based Charts</h3>
+    <div id="altShape"></div>
+
+    <!-- place two divs next to each other.  -->
+    <div>
+
+      <div style="display: inline-block">
+        <h3 style="margin-left: 20px">Aggregation-based Charts</h3>
+        <div id="altStatistic"></div>
+      </div>
+
+      <!-- space between -->
+      <div style="display: inline-block; min-width: 200px"></div>
+
+      <div style="display: inline-block">
+        <h3 style="margin-left: 20px">Other Charts</h3>
+        <div id="altOther"></div>
+      </div>
+
+    </div>
+
+
+    <md-dialog-content class="myDialogContent">
+      <div class="md-dialog-content">
+        * Data made continuous (randomly) to show the gradient properly.
+      </div>
+    </md-dialog-content>
+
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="closeDialog()">
+        Close
+      </md-button>
+    </md-dialog-actions>
+
+  </form>
+</md-dialog>

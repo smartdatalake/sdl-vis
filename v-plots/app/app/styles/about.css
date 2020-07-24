@@ -1,0 +1,9 @@
+ul li img{
+    width:150px;
+    height:150px;
+}
+
+.name {
+  color: #000;
+  font-weight: bold;
+}

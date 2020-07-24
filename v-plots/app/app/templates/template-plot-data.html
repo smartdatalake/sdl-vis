@@ -1,0 +1,365 @@
+<!-- Template to upload new data / paste data and select the name of the plot etc. -->
+
+<div style="width:700px; margin: auto" ng-cloak>
+  <div layout="column" layout-xs="column">
+
+    <md-card>
+      <div layout="row">
+        <md-card-title>
+          <md-card-title-text>
+            <span class="md-headline">Data</span>
+          </md-card-title-text>
+        </md-card-title>
+
+        <md-button class="md-fab" aria-label="Guided v-plot design" ng-click="showEditPlot($event)">
+          <md-tooltip md-direction="top">Customize v-plot based on analysis task(s)</md-tooltip>
+          <img class="png-icon" src="images/wizard.png" style="width: 24px;">
+        </md-button>
+
+        <!-- Button to compare v-plots with alternative visualizations. -->
+        <md-button class="md-fab" aria-label="Compare v-plot with alternative visualizations" ng-click="showAlternativeVisualizationsDialog($event); ">
+          <md-tooltip md-direction="top">Compare v-plot with other visualizations</md-tooltip>
+            <img class="png-icon" src="images/comparison.png" style="width: 24px; height: 24px;">
+        </md-button>
+
+        <md-button class="md-fab" aria-label="Undo last change" ng-click="undoLastChange($event); ">
+          <md-tooltip md-direction="top">Undo last change</md-tooltip>
+          <img class="png-icon" src="images/undo.png" style="height: 24px;">
+        </md-button>
+
+        <md-button class="md-fab" aria-label="Reset to default properties" ng-click="loadDefaultProperties($event); ">
+          <md-tooltip md-direction="top">Reset to default properties</md-tooltip>
+          <img class="png-icon" src="images/default.png" style="height: 24px;">
+        </md-button>
+
+     </div>
+
+      <md-card-content>
+
+         <md-input-container class="full-width">
+           <label>Title of the v-plot</label>
+           <input placeholder="Title of the Plot" ng-model="$parent.titleOfThePlot">
+         </md-input-container>
+
+        <div layout="row" layout-align="space-between center">
+          <md-input-container class="full-width">
+            <label ng-if="$parent.properties.orientation === 'horizontal'">Name/label <i><b>top</b></i> distribution.</label>
+            <label ng-if="$parent.properties.orientation === 'vertical'">Name/label <i><b>left</b></i> distribution.</label>
+            <input ng-model="$parent.nameOfTopDistribution">
+          </md-input-container>
+
+          <md-input-container class="full-width">
+            <label ng-if="$parent.properties.orientation === 'horizontal'">Name/label <i><b>bottom</b></i> distribution</label>
+            <label ng-if="$parent.properties.orientation === 'vertical'">Name/label <i><b>right</b></i> distribution</label>
+            <input ng-model="$parent.nameOfBottomDistribution">
+          </md-input-container>
+        </div>
+
+        <md-nav-bar
+          md-selected-nav-item="currentNavItem"
+          nav-bar-aria-label="navigation links">
+          <md-nav-item md-nav-click="goto('pasteData')" name="pasteData">
+            Copy & Paste Data
+          </md-nav-item>
+          <md-nav-item md-nav-click="goto('database')" name="database">
+            Select from Database
+          </md-nav-item>
+<!--           <md-nav-item md-nav-click="goto('uploadCsv')" name="uploadCsv">
+            Upload Data from CSV
+          </md-nav-item>
+ -->          <md-nav-item md-nav-click="goto('exampleData')" name="exampleData">
+            Example Distributions
+          </md-nav-item>
+        </md-nav-bar>
+
+        <div class="ext-content">
+          <md-card ng-if="currentNavItem === 'pasteData'">
+            <md-card-title>
+              <md-card-title-text>
+                <!--<span class="md-headline">Paste Data</span>-->
+                <span class="md-subhead">Comma separated integer or floating point numbers only.</span>
+              </md-card-title-text>
+            </md-card-title>
+
+            <md-card-content>
+              <table class="full-width">
+                <tr>
+                  <td ng-if="$parent.properties.orientation === 'horizontal'"><span>Data <em>top</em> distribution.</span></td>
+                  <td ng-if="$parent.properties.orientation === 'vertical'"><span>Data <em>left</em> distribution.</span></td>
+                  <td ng-if="$parent.properties.orientation === 'horizontal'"><span>Data <em>bottom</em> distribution.</span></td>
+                  <td ng-if="$parent.properties.orientation === 'vertical'"><span>Data <em>right</em> distribution.</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <md-input-container>
+                      <label> </label>
+                      <textarea ng-model="$parent.$parent.inputDistributionTop" max-rows="5" cols="50" placeholder="Distribution Data"></textarea>
+                    </md-input-container>
+                  </td>
+                  <td>
+                    <md-input-container>
+                      <label> </label>
+                      <textarea ng-model="$parent.$parent.inputDistributionBottom" max-rows="5" cols="50" placeholder="Distribution Data"></textarea>
+                    </md-input-container>
+                  </td>
+                </tr>
+              </table>
+
+
+              <!-- Data Type -->
+              <md-input-container class="full-width">
+                <label>Data Type: </label><br/>
+                <md-radio-group ng-model="$parent.$parent.continuous" layout="row">
+                  <md-radio-button ng-value='false' ng-disabled="$parent.isDecimal.top || $parent.isDecimal.bottom">Discrete</md-radio-button>
+                  <md-radio-button ng-value='true' ng-disabled="$parent.isDecimal.top || $parent.isDecimal.bottom">Continuous</md-radio-button>
+                </md-radio-group>
+              </md-input-container>
+
+              <!-- #bis, only if data type = continuous. -->
+              <div ng-if="$parent.$parent.continuous">
+                <md-slider-container>
+                  <md-slider min="2" max="20" ng-model="$parent.$parent.$parent.numOfBins" aria-label="Number of bins"></md-slider>
+                  <md-input-container>
+                    <input type="number" ng-model="$parent.$parent.$parent.numOfBins" aria-label="Number of bins">
+                  </md-input-container>
+                </md-slider-container>
+                <p style="text-align: center">
+                  Select the number of bins for the histogram.
+                </p>
+              </div>
+
+            </md-card-content>
+          </md-card>
+          <md-card ng-if="currentNavItem === 'database'">
+            <md-card-title>
+              <md-card-title-text>
+                <span class="md-subhead">
+                  Clicking the left half of the column will use the left distribution while clicking on the right half will use the right distribution.
+                </span>
+              </md-card-title-text>
+            </md-card-title>
+            <md-card-content>
+              <div class="dbTableWrapper">
+                <div class="dbTableRow" ng-repeat="(tname,tcols) in schema">
+                  <span class="dbTableName">{{tname}}</span>
+                  <div class="dbTableCols">
+                    <div class="dbTableCol" 
+                      ng-repeat="(idx,col) in tcols" 
+                      ng-click="dbColumnAsVPlot($event,tname,col)"
+                      ng-mousemove="onMouseOverColFn($event,col)"
+                      ng-mouseout="onMouseOutColFn($event)">
+                      <span class="dbTableColName">{{col.column_name}}</span>
+                      <span class="dbTableColType">{{col.data_type}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </md-card-content>
+          </md-card>
+          <md-card ng-if="currentNavItem === 'uploadCsv'">
+            <md-card-title>
+              <md-card-title-text>
+                <!--<span class="md-headline">Upload CSV</span>-->
+                <span class="md-subhead">Please select .csv file only. <br>Allowed separators are comma(,), semicolon(;) and tab(\t).</span>
+              </md-card-title-text>
+            </md-card-title>
+
+            <md-card-content>
+
+              <ng-csv-import content="csv.content"
+                             material
+                             md-button-class="md-button md-raised"
+                             md-button-title="Upload &nbsp;&nbsp;&nbsp;&nbsp;"
+                             result="csv.result"
+                             accept="csv.accept"
+                             separator="csv.separator"
+                             callback="fileParsed"></ng-csv-import>
+              <br/>
+              <div ng-if="csv.columnNames.length > 0">
+                <md-nav-bar
+                  md-selected-nav-item="uploadCsvNavItem"
+                  nav-bar-aria-label="navigation links">
+                  <md-nav-item md-nav-click="goto('colSelect')" name="colSelect">
+                    Select Columns
+                  </md-nav-item>
+                  <md-nav-item md-nav-click="goto('colWithFilter')" name="colWithFilter">
+                    Select Column and Filter
+                  </md-nav-item>
+                  <!--<md-nav-item md-nav-click="goto('colBin')" name="colBin">-->
+                    <!--Each Column a Bin-->
+                  <!--</md-nav-item>-->
+                </md-nav-bar>
+                <br/>
+
+                <div ng-if="uploadCsvNavItem === 'colSelect'">
+                  <md-button class="md-primary md-raised" ng-click="showDataSetInfoDialog($event, 'templates/template-colSelect-Infobox.html')">
+                    Data Info
+                  </md-button>
+                  <div layout="row" layout-align="space-between center">
+                    <md-input-container class="full-width">
+                      <label ng-if="$parent.properties.orientation === 'horizontal'"><em>Top</em> Distribution Column</label>
+                      <label ng-if="$parent.properties.orientation === 'vertical'"><em>Left</em> Distribution Column</label>
+                      <md-select ng-model="selectedColIndex.top" ng-change="colSelect('top')">
+                        <md-option ng-repeat="col in csv.columnNames" value="{{$index}}">{{col}}</md-option>
+                      </md-select>
+                    </md-input-container>
+
+                    <md-input-container class="full-width">
+                      <label ng-if="$parent.properties.orientation === 'horizontal'"><em>Bottom</em> Distribution Column</label>
+                      <label ng-if="$parent.properties.orientation === 'vertical'"><em>Right</em> Distribution Column</label>
+                      <md-select ng-model="selectedColIndex.bottom" ng-change="colSelect('bottom')">
+                        <md-option ng-repeat="col in csv.columnNames" value="{{$index}}">{{col}}</md-option>
+                      </md-select>
+                    </md-input-container>
+                  </div>
+
+                  <div layout="column">
+                    <span ng-show="selectedColIndex.topValues && selectedColIndex.topValues > 0">Number of values in top distribution: {{selectedColIndex.topValues}}
+                      <label md-colors="{color: 'red-A200'}" ng-show="selectedColIndex.topMissingValues && selectedColIndex.topMissingValues > 0">
+                        (<em>including {{selectedColIndex.topMissingValues}} missing values</em>)
+                      </label>
+                    </span>
+                    <span ng-show="selectedColIndex.bottomValues && selectedColIndex.bottomValues > 0">Number of values in bottom distribution: {{selectedColIndex.bottomValues}}
+                      <label md-colors="{color: 'red-A200'}" ng-show="selectedColIndex.bottomMissingValues && selectedColIndex.bottomMissingValues > 0">
+                        (<em>including {{selectedColIndex.bottomMissingValues}} missing values</em>)
+                      </label>
+                    </span>
+                  </div>
+                </div>
+
+                <div ng-if="uploadCsvNavItem === 'colWithFilter'">
+                  <md-button class="md-primary md-raised" ng-click="showDataSetInfoDialog($event, 'templates/template-colWithFilter-Infobox.html')">
+                    Data Info
+                  </md-button>
+                  <div layout="row" layout-align="space-between center">
+                    <md-input-container class="full-width">
+                      <label>Select column as data source</label>
+                      <md-select ng-model="selectedColIndex.data">
+                        <md-option ng-repeat="col in csv.columnNames" value="{{$index}}">{{col}}</md-option>
+                      </md-select>
+                    </md-input-container>
+                  </div>
+                  <div layout="row" layout-align="space-between center" ng-if="selectedColIndex.data">
+                    <md-input-container class="full-width">
+                      <label>Select column to filter</label>
+                      <md-select ng-model="selectedColIndex.filter" ng-change="colSelect('filter')">
+                        <md-option ng-repeat="col in csv.columnNames" value="{{$index}}">{{col}}</md-option>
+                      </md-select>
+                    </md-input-container>
+                    <md-input-container class="full-width">
+                      <label ng-if="$parent.properties.orientation === 'horizontal'"><em>Top</em> Distribution Filter</label>
+                      <label ng-if="$parent.properties.orientation === 'vertical'"><em>Left</em> Distribution Filter</label>
+                      <md-select ng-model="selectedColFilter.topFilter" ng-change="filterSelect('top')">
+                        <md-option ng-repeat="col in selectedColFilter.filterValues" value="{{col}}">{{col}}</md-option>
+                      </md-select>
+                    </md-input-container>
+                    <md-input-container class="full-width">
+                      <label ng-if="$parent.properties.orientation === 'horizontal'"><em>Bottom</em> Distribution Filter</label>
+                      <label ng-if="$parent.properties.orientation === 'vertical'"><em>Right</em> Distribution Filter</label>
+                      <md-select ng-model="selectedColFilter.bottomFilter" ng-change="filterSelect('bottom')">
+                        <md-option ng-repeat="col in selectedColFilter.filterValues" value="{{col}}">{{col}}</md-option>
+                      </md-select>
+                    </md-input-container>
+                  </div>
+                </div>
+
+                <div ng-if="uploadCsvNavItem === 'colBin'">
+                  <md-button class="md-primary md-raised" ng-click="showDataSetInfoDialog($event, 'templates/template-colBin-Infobox.html')">
+                    Data Info
+                  </md-button>
+                  <div layout="row" layout-align="space-between center">
+                    <md-input-container class="full-width">
+                      <label>Select column as filter</label>
+                      <md-select ng-model="selectedColIndex.filterBin" ng-change="colSelect('filterBin')">
+                        <md-option ng-repeat="col in csv.columnNames" value="{{$index}}">{{col}}</md-option>
+                      </md-select>
+                    </md-input-container>
+                    <md-input-container class="full-width">
+                      <label><em>Top</em> Distribution Filter</label>
+                      <md-select ng-model="selectedColBin.topFilterBin" ng-change="filterBinSelect('top')">
+                        <md-option ng-repeat="col in selectedColBin.filterValues" value="{{col}}">{{col}}</md-option>
+                      </md-select>
+                    </md-input-container>
+                    <md-input-container class="full-width">
+                      <label><em>Bottom</em> Distribution Filter</label>
+                      <md-select ng-model="selectedColBin.bottomFilterBin" ng-change="filterBinSelect('bottom')">
+                        <md-option ng-repeat="col in selectedColBin.filterValues" value="{{col}}">{{col}}</md-option>
+                      </md-select>
+                    </md-input-container>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Data Type -->
+              <md-input-container class="full-width">
+                <label>Data Type: </label><br/>
+                <md-radio-group ng-model="$parent.$parent.continuous" layout="row">
+                  <md-radio-button ng-value='false' ng-disabled="$parent.isDecimal.top || $parent.isDecimal.bottom">Discrete</md-radio-button>
+                  <md-radio-button ng-value='true' ng-disabled="$parent.isDecimal.top || $parent.isDecimal.bottom">Continuous</md-radio-button>
+                </md-radio-group>
+              </md-input-container>
+
+              <!-- #bis, only if data type = continuous. -->
+              <div ng-if="$parent.$parent.continuous">
+                <md-slider-container>
+                  <md-slider min="2" max="20" ng-model="$parent.$parent.$parent.numOfBins" aria-label="Number of bins"></md-slider>
+                  <md-input-container>
+                    <input type="number" ng-model="$parent.$parent.$parent.numOfBins" aria-label="Number of bins">
+                  </md-input-container>
+                </md-slider-container>
+                <p style="text-align: center">
+                  Select the number of bins for the histogram.
+                </p>
+              </div>
+
+            </md-card-content>
+          </md-card>
+
+          <md-card ng-if="currentNavItem === 'exampleData'">
+            <md-card-title>
+              <md-card-title-text>
+                <span class="md-headline">Example Data</span>
+              </md-card-title-text>
+            </md-card-title>
+            <md-card-content>
+
+              <md-button style="width:280px;" class="md-raised" ng-click="showNormalDistributionExample()">
+                <img src="images/example-distributions/normal-distribution.png" width="50px">
+                Normal Distribution
+              </md-button>
+
+              <md-button style="width:280px;" class="md-raised" ng-click="showEqualDistributionExample()">
+                <img src="images/example-distributions/equal-distribution.png" width="50px">
+                Equal Distribution
+              </md-button>
+
+              <md-button style="width:280px;" class="md-raised" ng-click="showExponentialDistributionExample()">
+                <img src="images/example-distributions/exponential-distribution.png" width="50px">
+                Exponential Distribution
+              </md-button>
+
+              <md-button style="width:280px;" class="md-raised" ng-click="showLogNormalDistributionExample()">
+                <img src="images/example-distributions/log-normal-distribution.png" width="50px">
+                Log-normal Distribution
+              </md-button>
+
+              <md-button style="width:280px;" class="md-raised" ng-click="showMultiModalDistributionExample()">
+                <img src="images/example-distributions/multi-modal-distributions.png" width="50px">
+                Multi-modal Distribution
+              </md-button>
+
+              <md-button style="width:280px;" class="md-raised" ng-click="showSkewedDistributionExample()">
+                <img src="images/example-distributions/skewed-normal-distribution.png" width="50px">
+                Skewed Distribution
+              </md-button>
+
+            </md-card-content>
+          </md-card>
+        </div>
+
+      </md-card-content>
+    </md-card>
+
+  </div>
+</div>

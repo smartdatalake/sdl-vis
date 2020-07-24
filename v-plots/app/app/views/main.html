@@ -1,0 +1,188 @@
+<div class="container">
+  <h1 class="text-center"><b>v-plots</b>: Designing Hybrid Charts for the <br/> Comparative Analysis of Data Distributions</h1>
+  <br/>
+  <br/>
+
+
+  <p class="text-justify">
+  Comparing data distributions is a core focus in descriptive statistics, and part of most data analysis processes across disciplines. In particular, comparing distributions entails numerous tasks, ranging from identifying global distribution properties, comparing aggregated statistics (e.g., mean values), to the local inspection of single cases. While various specialized visualizations have been proposed (e.g., box plots, histograms, or violin plots), they are not usually designed to support more than a few tasks, unless they are combined.
+    <b>We present the v-plot designer; a technique for authoring custom hybrid charts</b>, combining mirrored bar charts, difference encodings, and violin-style plots.
+    <b>v-plots are customizable and enable the simultaneous comparison of data distributions on global, local, and aggregation levels.</b>
+  Our system design is grounded in an expert survey that compares and evaluates 20 common visualization techniques to derive guidelines for the task-driven selection of appropriate visualizations.
+  This knowledge externalization step allowed us to develop a  guiding wizard that can tailor v-plots to individual tasks and particular distribution properties.
+  </p>
+
+
+
+  <!-- =================================================================================== -->
+  <br/>
+  <br/>
+  <h3>Overview of the v-plot designer</h3>
+  <!-- 16:9 aspect ratio; responsive layout -->
+  <div class="embed-responsive embed-responsive-16by9">
+    <iframe class="embed-responsive-item" src="https://mfr.de-1.osf.io/render?url=https://osf.io/n47gr/?direct%26mode=render%26action=download%26mode=render" scrolling="yes" allowfullscreen webkitallowfullscreen></iframe>
+  </div>
+
+
+
+  <!-- =================================================================================== -->
+  <br/>
+  <br/>
+  <h3>Design rational and visual elements of v-plots</h3>
+  <p class="text-justify">
+
+    The fundamental design rationale of  v-plots is a layered representation.
+    Each layer supports different analysis tasks.
+    The total number of layers is five (<b>"v"</b>), which gives our hybrid plot its name.
+    The order of layers and their style can both be customized to focus on specific analysis scenarios.
+    All layers are based on well-established visualizations, which makes them easy to use and interpret while still supporting a combination of complex analysis tasks.
+    By default the v-plots are configured to enable all five layers to be visible.
+    Users can adjust the layers and their highlighting by selecting certain tasks, either manually or through our guiding wizard.
+
+    <br/>
+    <br/>
+    In the following, we describe the different layers and visual elements of the v-plot.
+    <b>Figure 1 (A)</b> shows one example of a v-plot along with its different layers to compare the distributions of <i><b><span style="color: #1F618D">Group A</span></b></i> and <i><b><span style="color: #922B21">Group B</span></b></i>:
+
+    <br/>
+    <div style="text-align: center;">
+      <a href="./images/v-plot-design.png"><img src="./images/v-plot-design.png" width="100%"></a><br/>
+      <br>
+      <p class="text-justify">
+        <b>Figure 1.</b> Layers of a v-plot (click for higher resolution).
+      </p>
+    </div>
+
+    <br/>
+    <br/>
+
+    <b>(B) Mirrored bar chart.</b>
+    The first layer is a mirrored bar chart which
+    supports local tasks on single distributions, such as the identification of frequencies or their comparison.
+    In discrete distributions, every bin corresponds to one particular value.
+    For continuous distributions, an adjustable equal-width binning is applied.
+    Small values are at the bottom; high values are at the top.
+    The height of each bin corresponds to its relative frequency in the distribution, which also allows the comparison of distributions of different sizes.
+
+    <br/>
+    <br/>
+
+    <b>(C) Density distribution.</b>
+    The global properties of distributions, such as type and skewness, can be analyzed by a shape-based density distribution.
+    This layer supports two implementations:
+    (1) the center of each bin is used as a control point for a <a href="https://en.wikipedia.org/wiki/Centripetal_Catmull%E2%80%93Rom_spline">Catmull–Rom spline</a>;
+    (2) a <a href="https://en.wikipedia.org/wiki/Kernel_density_estimation">kernel-density estimation (KDE)</a> with selectable parameters for the bandwidth and kernel type can be selected.
+    The first option is the default, as it has three advantages compared to the KDE:
+    (1) it is parameter-free, (2) it shows all peaks and valleys properly, and (3) it is directly linked to the underlying mirrored bar chart, linking global and local tasks together.
+
+    <br/>
+    <br/>
+
+    <b>(D) + (E) Direct difference encoding.</b>
+    We chose a vertical layout as the v-plots' default for supporting the comparisons between both distributions.
+    The symmetrical arrangement allows one to easily see if the two
+distributions align or not. We also encode the differences of the distributions directly into the inner part of the mirrored bar chart as a <b>difference histogram (D)</b> or <b>difference shape (E)</b>.
+    This encoding
+    represents the absolute difference between the two relative frequencies and, for example, allows the highest difference between bins, or the value ranges with low differences, to be identified.
+    While the difference histogram supports a direct comparison between bins, the difference shape supports the analysis of more general patterns and is often used in the v-plot matrix as shown below.
+
+    <br/>
+    <br/>
+
+    <b>(F) Statistic measures.</b>
+    As a fourth layer, we support the
+    encoding and comparison of statistical measures.
+    For each distribution on the left and right side, the analyst can represent a value of central tendency (i.e., mean or median) and the spread of data (i.e., standard deviation, interquartile range, or standard error).
+    The properties can be connected and highlighted with color for a comparative analysis.
+
+    <br/>
+    <br/>
+
+    <b>(G) Labels.</b>
+    The final layer comprises various labels, such as the chart title, name of the distributions, a grid, and labels of the bins with the respective frequencies for a detail analysis.
+    The size and position of the labels can be interactively adjusted.
+
+
+  </p>
+  <br>
+
+  <h3>How to use v-plots for your own data?</h3>
+  <p class="text-justify">
+
+    To use v-plots for your own application, you can simply upload your own data. The uploaded data is stored in the browser only and therefore automatically deleted after the website is closed.
+    The v-plot team has no access to this data. Details can be found in our <a href="/#!/dataprotection">data protection regulations</a>. Alternatively,
+    the source code (see below) is also available to check how we handle the data as well as run the application offline.
+    <br/>
+    <br/>
+
+    <b>Copy & paste.</b> You can copy and paste the values for each group into our tool.
+    Hereby, the individual values need to be <i>separated by a comma</i>. For this option, only discrete distributions/values are allowed.
+    <br/>
+    <br/>
+
+    <b>Upload a csv file.</b> You can also upload a csv file with your data. The columns need to be separated by comma,
+    semicolon, or the tab character which is automatically detected by the v-plot designer. Each column need to have a
+    column name in the first row. Both, continuous and discrete distributions are possible when uploading a file.
+    <br/>
+    After uploading the file, you can choose a column for the left and the right distribution / group as shown in <b>Figure 2 (A)</b>.
+    Alternatively, you can choose only one column for the data values and filter for the two different groups as shown in <b>Figure 2 (B)</b>.
+    <br/>
+    <br/>
+
+    <div style="text-align: center;">
+      <a href="./images/table-csv-upload.png"><img src="./images/table-csv-upload.png" width="100%"></a><br/>
+      <br>
+    <p class="text-justify">
+      <b>Figure 2.</b> Structure of csv file to upload your own data.
+    </p>
+    </div>
+
+
+  </p>
+  <br>
+
+  <h3>Comparison with other charts and visualization techniques</h3>
+  <p class="text-justify">
+    v-plots are great mean to visually compare to data distributions on a local and global perspective at the same time.
+    Our implementation allows the user to quickly see how the uploaded data distributions will be visualized using
+    alternative charts such as Box plots, violin plots, and different Bar chart alternatives. An example for
+    alternative charts for the data visualized in Figure 1 can be found below in Figure 3.
+    <br/>
+    <br/>
+
+    <div style="text-align: center;">
+        <a href="./images/alternative.png"><img src="./images/alternative-snapshot-2.png" width="100%"></a><br/>
+        <br>
+      <p class="text-justify">
+        <b>Figure 3.</b> Alternative visualizations for v-plots (click to show all charts). The same data as for the
+        v-plot in Figure 1 is used.
+      </p>
+    </div>
+  </p>
+  <br>
+
+  <h3>Application and usage of v-plots</h3>
+  <p class="text-justify">
+    The following selected publications used v-plots to compare data distributions:
+    <ul>
+  <li>Debbeler, L. J. Gamp, M., Blumenschein, M., Keim, D. A., & Renner, B. (2018). Polarized but illusory beliefs about tap and bottled water: A product- and consumer-oriented survey and blind tasting experiment. <i>Science of the Total Environment</i>, 643, 1400-1410. doi: <a href="https://doi.org/10.1016/j.scitotenv.2018.06.190">https://doi.org/10.1016/j.scitotenv.2018.06.190</a></li>
+    </ul>
+  </p>
+  <br>
+
+  <br>
+  <hr>
+
+  <h3>Questions, Feedback, and Citation</h3>
+  <p class="text-justify">
+    In case you you have any questions or Feedback, feel free to send us an <a href="/#!/about">email</a>. <br/>
+    If you use v-plots in your paper or presentation, please cite it using the information below.
+  </p>
+  <br>
+
+
+  <b>Paper pre-print</b> is available <a href="https://bib.dbvis.de/uploadedFiles/v-plots-authors-preprint.pdf">here</a>.
+  <br>
+  <b>Supplementary Material and Source Code</b> is available at the <a href="https://osf.io/jk8rp"> Open Science Framework (OSF)</a>.
+
+  <div style="height: 30px"></div>

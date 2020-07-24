@@ -1,0 +1,20 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  align-content: stretch;
+  flex-grow: 1;
+  height: 100vh;
+}
+
+.nav.nav-tabs {
+  flex-grow: 1;
+}
+
+.tab-content {
+  flex-grow: 100;
+}
+
+.tab-pane {
+  height: 100%;
+}

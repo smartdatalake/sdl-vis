@@ -1,0 +1,134 @@
+/* Style for the plot. */
+
+svg{
+  /*shape-rendering: crispEdges; !* taken from: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/shape-rendering*!*/
+}
+
+.axis--y .domain {
+  display: none;
+}
+
+.histogram {
+  fill: #E5E7E9;
+  stoke-width: 1px;
+  stroke: #CACFD2;
+}
+
+.densityTop {
+   fill: #1E8449;
+   opacity: .2;
+   stroke: #000;
+   stroke-width: 1.5;
+   stroke-linejoin: round;
+ }
+
+.densityBottom {
+  fill: #E67E22;
+  opacity: .2;
+  stroke: #000;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.gridLine {
+  stroke-width: 0.5;
+  stroke: #000;
+  stroke-dasharray: 1, 5;
+}
+
+.diffHist {
+  fill: #BDC3C7;
+}
+
+.medianTop {
+  fill: #1E8449;
+}
+
+.medianBottom {
+  fill: #E67E22;
+}
+
+.label {
+  fill: #626567;
+  font-family: 'Lato', 'Open Sans', 'Helvetica Neue', 'Arial', sans-serif;
+  font-weight: normal;
+  font-size: 20px;
+  text-anchor: end;
+}
+
+
+.statisticAxis{
+  font-family: 'Lato', 'Open Sans', 'Helvetica Neue', 'Arial', sans-serif;
+  font-size: 15px;
+}
+
+.statisticAxis text {
+  fill: #626567;
+}
+
+
+.statisticAxis path{
+  stroke: none;
+  stroke-width: 1;
+}
+
+.statisticAxis line{
+  fill: red;
+}
+
+
+.statisticAxis.noNumbers{
+  font-size: 0 !important;
+}
+
+div.dbTableRow{
+  display: flex;
+  box-shadow: 0px 0px 1px 0px grey;
+  margin-bottom: 1%;
+}
+
+span.dbTableName{
+  width: 35%;
+  font-weight: 800;
+  font-size: large;
+  padding: 1% 1%;
+}
+
+div.dbTableCols{
+  width: 65%;
+  border-left: 1px solid gray;
+}
+
+div.dbTableCol{
+  display: flex;
+  justify-content: space-between;
+  padding: 1%;
+  box-shadow: 0 2px 3px -1px grey;
+  transition: background 0.3s ease-in-out;
+  border-radius: 5px;
+}
+
+div.dbTableCol:focus{
+  outline: none;
+}
+
+div.dbTableWrapper{
+  height: 39vh;
+  overflow-y: scroll;
+}
+
+div.dbTableColName{
+  pointer-events: none;
+}
+
+div.dbTableColType{
+  pointer-events: none;
+}
+
+.activeTopDist {
+  border: 3px solid rgba(31, 97, 141, 0.5);
+}
+
+.activeBottomDist {
+  border: 3px solid rgba(146, 43, 33, 0.5);
+}

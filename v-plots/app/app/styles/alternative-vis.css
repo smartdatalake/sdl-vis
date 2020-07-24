@@ -1,0 +1,52 @@
+.divProps{
+  float:left;
+  /*margin: 20px;*/
+}
+
+.divPropsRanking{
+  float:left;
+  margin: 20px;
+}
+
+.divSmallMultipleRanking{
+  float:left;
+  margin: 4.5px;
+}
+
+/* Allow to make the dialog larger */
+md-dialog{
+  max-width: 95%;
+  max-height: 95%;
+}
+
+md-dialog-content{
+  max-height: 1500px;
+}
+
+.myDialogContent{
+  max-height: 1000px;
+}
+
+.labelAlternativeVis{
+  fill: #626567;
+  font-family: 'Lato', 'Open Sans', 'Helvetica Neue', 'Arial', sans-serif;
+  font-weight: normal;
+  font-size: 18px;
+  text-anchor: middle;
+  alignment-baseline: central;
+}
+
+.labelAlternativeVisRank{
+  fill: #626567;
+  font-family: 'Lato', 'Open Sans', 'Helvetica Neue', 'Arial', sans-serif;
+  font-weight: normal;
+  font-size: 12px;
+  text-anchor: middle;
+  alignment-baseline: central;
+}
+
+.backgroundAlternativeVis{
+  fill: #fafafa;
+  stroke-width: 1px;
+  stroke: #e6e6e6;
+}

@@ -1,0 +1,133 @@
+{
+    "colorBackgroundMargin": {
+        "hex": "#FFFFFF"
+    },
+    "colorBackground": {
+        "bothDistributionsSameColor": true,
+        "colorBoth": {
+            "name": "grey 50",
+            "hex": "#fafafa",
+            "style": {
+                "color": "rgba(0,0,0,0.87)",
+                "background-color": "rgb(250,250,250)"
+            },
+            "$$hashKey": "object:546"
+        },
+        "colorLeft": {
+            "name": "grey 50",
+            "hex": "#fafafa",
+            "style": {
+                "color": "rgba(0,0,0,0.87)",
+                "background-color": "rgb(250,250,250)"
+            },
+            "$$hashKey": "object:546"
+        },
+        "colorRight": {
+            "name": "grey 50",
+            "hex": "#fafafa",
+            "style": {
+                "color": "rgba(0,0,0,0.87)",
+                "background-color": "rgb(250,250,250)"
+            },
+            "$$hashKey": "object:546"
+        },
+        "colorBetween": {
+            "name": "grey 50",
+            "hex": "#fafafa",
+            "style": {
+                "color": "rgba(0,0,0,0.87)",
+                "background-color": "rgb(250,250,250)"
+            },
+            "$$hashKey": "object:546"
+        }
+    },
+    "grid": [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1
+    ],
+    "gridGranularity": 0.1,
+    "widthOfPlot": 750,
+    "heightOfPlot": 750,
+    "spaceBetweenPlots": 16,
+    "orientation": "vertical",
+    "showBorderAroundPlot": false,
+    "showGrid": false,
+    "gridWithin": false,
+    "showGridLabels": "right",
+    "showStatistics": false,
+    "aggregatedStatistic": "mean+std",
+    "connectMean": false,
+    "connectStd": false,
+    "statisticConnectionBackground": false,
+    "colorStatisticConnection": {
+        "hex": "#b9b9b9"
+    },
+    "colorStatisticConnectionStd": {
+        "hex": "#b9b9b9"
+    },
+    "colorStatisticConnectionOpacity": 0.5,
+    "colorStatisticConnectionStdOpacity": 0.5,
+    "colorStatisticBackgroundConnection": {
+        "hex": "#cbcbcb"
+    },
+    "colorStatisticBackgroundConnectionOpacity": 0.2,
+    "statisticInForeground": true,
+    "showLabelsHistogramBins": false,
+    "positionOfMeanStatistic": 0.85,
+    "scaleDomainOfBinHeight": 0.5,
+    "showLabelsDistributionNames": false,
+    "showTitleOfThePlot": false,
+    "distributionRangeAuto": false,
+    "distributionRangeMin": 1,
+    "distributionRangeMax": 7,
+    "showHistograms": true,
+    "showDifferenceHistogram": false,
+    "showLabelHeightInPercentage": false,
+    "colorLabelHeightInPercentage": {
+        "hex": "#626567"
+    },
+    "opacityLabelHeightInPercentage": 0.6,
+    "sizeInnerHistogram": 0.8,
+    "colorHistogram": {
+        "hex": "#87898a"
+    },
+    "colorHistogramOpacity": 0.26,
+    "colorInnerHistogram": {
+        "hex": "#4a4d50"
+    },
+    "colorInnerHistogramOpacity": 0.55,
+    "showDensityShape": false,
+    "showDifferenceDensityShape": true,
+    "showKernelDensityTicks": false,
+    "densityCurve": "cubic cardinal spline",
+    "densityVisualization": "densityBasedOnHist",
+    "kernelDensityBandwidth": 0.8,
+    "maxKernelDensityHeight": 0.8,
+    "kernelDensityNumTicks": 5,
+    "kernelDensityColorTop": {
+        "hex": "#1F618D"
+    },
+    "kernelDensityColorBottom": {
+        "hex": "#922B21"
+    },
+    "colorShapesOpacity": 0.69,
+    "colorDifferenceShapesOpacity": 0.68,
+    "fontSizeValues": 15,
+    "fontSizeGrid": 15,
+    "fontSizeHistogramBins": 15,
+    "fontSizeHistogramBinHeight": 15,
+    "fontSizeTitle": 25,
+    "fontSizeGroupNames": 18,
+    "colorLabel": {
+        "hex": "#626567"
+    },
+    "sizeStatistic": 2
+}

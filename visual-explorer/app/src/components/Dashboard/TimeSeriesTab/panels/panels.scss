@@ -1,0 +1,51 @@
+.panel-card {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.95);
+  position: relative;
+  z-index: 2;
+}
+
+.panel {
+  display: block;
+  position: absolute;
+  min-width: 300px;
+  width: 30%;
+  max-width: 400px;
+
+  &.left {
+    top: 20px;
+    left: 20px;
+  }
+
+  &.right {
+    top: 20px;
+    right: 20px;
+  }
+
+  .remove-attribute-button {
+    color: white;
+    background: red;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .candidate-container {
+    border: 1px solid #80808080;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .timeseries-candidate {
+    padding: 5px;
+    transition: background 0.3s ease-in-out;
+  }
+
+  .timeseries-candidate:hover {
+    background: #84C3FE;
+  }
+
+}

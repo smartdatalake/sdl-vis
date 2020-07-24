@@ -1,0 +1,90 @@
+<md-dialog aria-label="Select Column">
+  <form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Each column a bin option for CSV upload</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="closeDialog()">
+          <md-icon md-svg-src="images/ic_close_black_48px.svg" aria-label="Close dialog"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+      <div class="md-dialog-content">
+        <h3>Requirements for Dataset File:</h3>
+        <ul>
+          <li>Comma separated CSV file.</li>
+          <li>Any kind of data is allowed for the binning as the histograms will be created based on height of the bins.</li>
+        </ul>
+
+        <h3>Creation of Histogram:</h3>
+        <ul>
+          <li>After CSV upload, the user needs to select a column from the drop-down menu as a filter. The drop-down menu is generated from the uploaded file.</li>
+          <li>The distinct values from the selected column is used to generate filter values for top/left and bottom/right distribution.</li>
+          <li>These filter values are used to group each column into two groups.</li>
+          <li>If the selected filter value does not exist in rest of the columns(other than filter column), those values from a column are selected that are not in the filter column.</li>
+          <li>The height of each column is calculated as: Number of rows in a column that has the selected filter value in the filter column / Total number of selected filter value in filter column</li>
+        </ul>
+
+        <h3>Example Dataset:</h3>
+        <table class="table">
+          <thead>
+          <tr>
+            <td>Group</td>
+            <td>one</td>
+            <td>two</td>
+            <td>three</td>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>YES</td>
+            <td>5</td>
+            <td>NO</td>
+            <td>3</td>
+          </tr>
+          <tr>
+            <td>YES</td>
+            <td>NO</td>
+            <td>NO</td>
+            <td>NO</td>
+          </tr>
+          <tr>
+            <td>NO</td>
+            <td>NO</td>
+            <td>NO</td>
+            <td>1.5</td>
+          </tr>
+          <tr>
+            <td>YES</td>
+            <td>8</td>
+            <td>7</td>
+            <td>NO</td>
+          </tr>
+          <tr>
+            <td>NO</td>
+            <td>4</td>
+            <td>7</td>
+            <td>NO</td>
+          </tr>
+          </tbody>
+        </table>
+        <p>
+          For e.g., for the given data set example, consider the user selects <i>Group</i> as a column to act as a filter. Here <i>Group</i> has <i>YES</i> and <i>NO</i> as distinct value.
+          There can be more than 2 distinct values. Consider for top/left distribution, the user selects <i>YES</i> as a filter. Now, in the rest of the columns, there is no cell with <i>YES</i> value.
+          In this case, for binning all columns based on <i>YES</i>, all those values will be selected which are not in the <i>Group</i> column. So for column <i>one</i>, 5 and 8 will be selected for filter value <i>YES</i>.
+          Here the height of bin for column one would be: 2/3.
+          Similarly, the height for each column will be calculated for this particular filter value.<br/>
+          Same process will follow for each column for a filter value selected for bottom/right distribution.
+        </p>
+      </div>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="closeDialog()">
+        Close
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

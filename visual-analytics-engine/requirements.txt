@@ -1,0 +1,16 @@
+flask
+flask-cors
+neo4j
+psycopg2
+networkx
+matplotlib
+strsim
+gevent
+
+scipy
+numpy
+umap-learn
+
+sklearn
+pandas
+requests

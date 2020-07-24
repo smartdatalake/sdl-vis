@@ -1,0 +1,25 @@
+.proj-vis-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.adj-line {
+  transition: 2s ease-out;
+}
+
+.content-svg {
+  display: block;
+  position: absolute;
+}
+
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

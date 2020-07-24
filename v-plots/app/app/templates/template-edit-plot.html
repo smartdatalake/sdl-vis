@@ -1,0 +1,323 @@
+<md-dialog style="width:1700px;" aria-label="Edit the Plot">
+  <form ng-controller="PlotCtrl" ng-cloak>
+
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Default Selection</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="closeDialog()">
+          <md-icon md-svg-src="images/ic_close_black_48px.svg" aria-label="Close dialog"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content class="myDialogContent">
+      <div class="md-dialog-content">
+
+
+        <legend>Guiding Wizard</legend>
+
+
+        <!-- container  -->
+        <div layout="row">
+
+          <!-- container for the top part : layout + preview -->
+          <div style="min-width: 650px; min-height: 800px;" layout="column">
+
+            <div layout="row">
+              <div class="divPropsRanking" id="previewvplot"></div>
+              <div class="divPropsRanking" id="previewr1"></div>
+            </div>
+
+            <div layout="row">
+              <div class="divPropsRanking" id="previewr2"></div>
+              <div class="divPropsRanking" id="previewr3"></div>
+            </div>
+
+            <!-- all ranked alternative visualizations as small multiples -->
+            <div layout="column">
+              <div layout="row">
+                <div style="margin-left: 20px;" class="divSmallMultipleRanking" id="smallMultiple0"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple1"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple2"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple3"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple4"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple5"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple6"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple7"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple8"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple9"></div>
+              </div>
+              <div style="height: 7px;"></div>
+              <div layout="row">
+                <div style="margin-left: 20px;" class="divSmallMultipleRanking" id="smallMultiple10"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple11"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple12"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple13"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple14"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple15"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple16"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple17"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple18"></div>
+                <div class="divSmallMultipleRanking" id="smallMultiple19"></div>
+              </div>
+            </div>
+
+
+          </div>
+
+
+
+          <div style="margin-top: 10px; margin-left: 50px" layout="column">
+            <h4>Please select all relevant analysis tasks.</h4>
+            Based on your selection, we customize your v-plot, and show the top alternative visualizations (based on an
+            expert survey result).
+
+            <br>
+            <br>
+            <md-checkbox ng-model="plot.local" aria-label="local" ng-change="onChange(plot)"><b>Local tasks</b>
+            </md-checkbox>
+            <div id="local-tasks" ng-show="plot.local">
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.l1" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p>&nbsp;L1. Identify the frequency of one value.</p>
+              </div>
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.l2" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p>&nbsp;L2. Identify the most and least frequent value(s) of one distribution.</p>
+              </div>
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.l3" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p>&nbsp;L3. Compare frequencies within one distribution.</p>
+              </div>
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.l4" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p>&nbsp;L4. Compare frequencies across multiple distributions.</p>
+              </div>
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.l5" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p>&nbsp;L5. Identify the value(s) with the largest and smallest distribution difference.</p>
+              </div>
+              <br/>
+            </div>
+
+
+            <!--- Aggregation Analysis Tasks ---->
+
+            <md-checkbox ng-model="plot.aggregation" aria-label="aggregation" ng-change="onChange(plot)"><b>Aggregation
+              tasks</b></md-checkbox>
+            <div id="aggregation-tasks" ng-show="plot.aggregation">
+              <div layout="row">
+                <p>Choose a statistic: &nbsp;</p>
+                <md-radio-group layout="row" ng-model="plot.statistic" ng-change="onChange(plot)">
+                  <md-radio-button value="mean-std" class="md-primary">mean & standard deviation</md-radio-button>
+                  <md-radio-button value="mean-err" class="md-primary">mean & standard error</md-radio-button>
+                  <md-radio-button value="mean-quartile" class="md-primary">mean & quartiles</md-radio-button>
+                  <md-radio-button value="median-quartile" class="md-primary">median & quartiles</md-radio-button>
+                </md-radio-group>
+              </div>
+
+
+              <!----- case a for aggregated analysis ---->
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.a1" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p ng-show="plot.statistic=='mean-std'">&nbsp;A1 + A4 Identify mean and standard deviation</p>
+                <p ng-show="plot.statistic=='mean-err'">A1 + A5 Identify mean and standard error</p>
+                <p ng-show="plot.statistic=='mean-quartile'">&nbsp;A1 + A3 Identify mean and quartiles</p>
+                <p ng-show="plot.statistic=='median-quartile'">A2 + A3 Identify median and quartiles</p>
+              </div>
+
+
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.a2" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p
+                  ng-show="plot.statistic=='mean-quartile' || plot.statistic=='mean-std' || plot.statistic=='mean-err'">
+                  &nbsp;A6 Compare means of multiple distributions</p>
+                <p ng-show="plot.statistic=='median-quartile'">&nbsp;A7 Compare medians of multiple distributions</p>
+              </div>
+
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.a3" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p ng-show="plot.statistic=='mean-quartile' || plot.statistic=='median-quartile'">&nbsp;A8 Compare
+                  quartiles of multiple distributions</p>
+                <p ng-show="plot.statistic=='mean-std'">&nbsp;A9 Compare standard deviations of multiple
+                  distributions</p>
+                <p ng-show="plot.statistic=='mean-err'">&nbsp;A10 Compare standard errors of multiple distributions</p>
+              </div>
+              <br/>
+            </div>
+
+            <!---- Global Analysis Tasks ----->
+            <md-checkbox ng-model="plot.global" aria-label="global" ng-change="onChange(plot)"><b>Global tasks</b>
+            </md-checkbox>
+            <div id="global-tasks" ng-show="plot.global">
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.g1" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p>&nbsp;G1. Describe and identify the shape and type of one distribution.</p>
+              </div>
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.g2" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p>&nbsp;G2. Describe the skewness and kurtosis of one distribution.</p>
+              </div>
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.g3" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p>&nbsp;G3. Compare the similarity, shape, and type of multiple distributions.</p>
+              </div>
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.g4" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p>&nbsp;G4. Compare the skewness and kurtosis of multiple distributions.</p>
+              </div>
+              <div layout="row">
+                <md-radio-group layout="row" ng-model="plot.g5" ng-change="onChange(plot)">
+                  <md-radio-button value="very-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done_all-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-done-24px.svg"></md-icon>
+                  </md-radio-button>
+                  <md-radio-button value="not-relevant" class="md-primary">
+                    <md-icon md-svg-src="images/baseline-clear-24px.svg"></md-icon>
+                  </md-radio-button>
+                </md-radio-group>
+                <p>&nbsp;G5. Identify the value ranges with the largest and smallest distribution difference.</p><br>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-disabled="!plot.local && !plot.global && !plot.aggregation" ng-href="/#!/comparison">
+        Usefulness of Charts for Selected Task(s)
+      </md-button>
+      <div flex="auto"></div>
+      <md-button ng-click="closeDialog(plot)">
+        Done
+      </md-button>
+    </md-dialog-actions>
+
+  </form>
+</md-dialog>

@@ -1,0 +1,82 @@
+<md-dialog aria-label="Select Column">
+  <form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Select Columns option for CSV upload</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="closeDialog()">
+          <md-icon md-svg-src="images/ic_close_black_48px.svg" aria-label="Close dialog"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+      <div class="md-dialog-content">
+        <h3>Requirements for Dataset File:</h3>
+        <ul>
+          <li>Comma separated CSV file.</li>
+          <li>The columns that needs to be selected for generating histograms, must be either integers or decimals.</li>
+          <li>No text is allowed for the columns selected for generating histograms.</li>
+        </ul>
+
+        <h3>Creation of Histogram:</h3>
+        <ul>
+          <li>After CSV upload, the user needs to select two columns from the drop-down menu for creating histograms. The drop-down menu is generated from the uploaded file.</li>
+          <li>If there are no error with the data, the data from the respective columns are used to generate the histograms.</li>
+          <li>Data from only one column is used for the respective (top/left or bottom/right) histogram.</li>
+        </ul>
+
+        <h3>Example Dataset:</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <td>Name</td>
+              <td>Midterm Marks</td>
+              <td>Final Exam Marks</td>
+              <td>Grade</td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Adam</td>
+              <td>25</td>
+              <td>30</td>
+              <td>1.7</td>
+            </tr>
+            <tr>
+              <td>Bob</td>
+              <td>10</td>
+              <td>30</td>
+              <td>2.3</td>
+            </tr>
+            <tr>
+              <td>John</td>
+              <td>30</td>
+              <td>22</td>
+              <td>1.5</td>
+            </tr>
+            <tr>
+              <td>Lea</td>
+              <td>15</td>
+              <td>30</td>
+              <td>2.0</td>
+            </tr>
+            <tr>
+              <td>Rachel</td>
+              <td>10</td>
+              <td>20</td>
+              <td>3.0</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="closeDialog()">
+        Close
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>
