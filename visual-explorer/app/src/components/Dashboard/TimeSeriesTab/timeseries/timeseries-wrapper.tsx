@@ -5,9 +5,9 @@ import TimeSeriesSVG from './timeseries-svg';
 import { Store } from 'redux';
 import { IApplicationState } from 'redux-types';
 import './timeseries-svg.scss';
-import { 
+import {
     TSeriesParametersState,
-    setAllCompanies 
+    setAllCompanies,
 } from 'redux-types/tseries-parameters';
 
 interface ITSeriesWrapperProps {
@@ -28,43 +28,44 @@ class TimeSeriesWrapper extends Component<
     ITSeriesWrapperProps & ITSeriesWrapperReduxProps,
     ITSeriesWrapperState
 > {
-    constructor(props: ITSeriesWrapperProps & ITSeriesWrapperReduxProps){
+    constructor(props: ITSeriesWrapperProps & ITSeriesWrapperReduxProps) {
         super(props);
         this.state = {
-            data: undefined
-        }
+            data: undefined,
+        };
 
-        fetch('http://127.0.0.1:8080/timeseries/allcompanies', {
+        fetch('http://127.0.0.1:3001/timeseries/allcompanies', {
             method: 'GET',
-        }).then(jsonResponse => {
-            return jsonResponse.json()
-        }).then((json: []) => {
-            console.log('allcomps', json)
-            this.props.setAllCompanies(json);
         })
-
+            .then(jsonResponse => {
+                return jsonResponse.json();
+            })
+            .then((json: []) => {
+                console.log('allcomps', json);
+                this.props.setAllCompanies(json);
+            });
     }
 
     private constructTimeSeries = memoize(
-        (
-            activeCompanies: TSeriesParametersState['activeCompanies']
-        ) => {
-            fetch('http://127.0.0.1:8080/timeseries', {
+        (activeCompanies: TSeriesParametersState['activeCompanies']) => {
+            fetch('http://127.0.0.1:3001/timeseries', {
                 body: JSON.stringify({
-                    activeCompanies: activeCompanies
+                    activeCompanies,
                 }),
                 headers: {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
                 },
                 method: 'POST',
-            }).then(jsonResponse => {
-                return jsonResponse.json()
-            }).then((json: []) => {
-                console.log("received timeseries data", json);
-                const data = json;
-                this.setState({data})
             })
+                .then(jsonResponse => {
+                    return jsonResponse.json();
+                })
+                .then((json: []) => {
+                    console.log('received timeseries data', json);
+                    const data = json;
+                    this.setState({ data });
+                });
         }
     );
 
@@ -80,23 +81,17 @@ class TimeSeriesWrapper extends Component<
     }
 
     render() {
-        return (
-            <TimeSeriesSVG
-                data={this.state.data}
-            />
-        )
+        return <TimeSeriesSVG data={this.state.data} />;
     }
 }
 
 const mapDispatchToProps = {
-    setAllCompanies
-}
+    setAllCompanies,
+};
 
-const mapStateToProps = ({
-    tSeriesParametersState
-}: IApplicationState) => ({
+const mapStateToProps = ({ tSeriesParametersState }: IApplicationState) => ({
     allCompanies: tSeriesParametersState.allCompanies,
     activeCompanies: tSeriesParametersState.activeCompanies,
-})
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(TimeSeriesWrapper);

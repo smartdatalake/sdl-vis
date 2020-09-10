@@ -2,7 +2,7 @@ import requests
 import json
 import pandas as pd
 
-service_url = 'http://83.212.114.165:10106/timeseries/'
+service_url = 'http://83.212.114.165:10110/timeseries/'
 api_key = 'UKON_nUmV6fyCF2bwenv3MeuqCzkcsMM8UKcX3zoBdhha'
 
 class TimeSeriesManager:
@@ -16,7 +16,7 @@ class TimeSeriesManager:
     def handleRequest(self, args):
         json_str = '['
         companies = args.get('activeCompanies', [])
-        for company in companies: 
+        for company in companies:
         # call the service
             data = dict()
             data['api_key'] = api_key

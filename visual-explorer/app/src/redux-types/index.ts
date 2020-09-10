@@ -12,7 +12,10 @@ import {
     IMDSTuningState,
     mdsParametersReducer,
 } from './proj-parameters/mds-parameters';
-import { tSeriesParametersReducer, TSeriesParametersState} from './tseries-parameters'
+import {
+    tSeriesParametersReducer,
+    TSeriesParametersState,
+} from './tseries-parameters';
 
 // The top-level state object
 export interface IApplicationState {
@@ -29,5 +32,5 @@ export const rootReducer = combineReducers<IApplicationState>({
     hinParametersState: hinParametersReducer,
     projParametersState: projParametersReducer,
     mdsParametersState: mdsParametersReducer,
-    tSeriesParametersState: tSeriesParametersReducer
+    tSeriesParametersState: tSeriesParametersReducer,
 });

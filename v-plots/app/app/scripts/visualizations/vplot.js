@@ -170,12 +170,15 @@ class VPlot{
     let xScaleHistogram = isContinuous ? getXScaleHistogramContinuous() : getXScaleHistogramDiscrete();
 
     // the ticks for the histogram.
-    let ticks = isContinuous ? getTicksHistogramContinuous(extent[0], extent[1], numBins) : getTicksHistogramDiscrete(extent[0], extent[1]);
+    let ticks = isContinuous ? getTicksHistogramContinuous(extent[0], extent[1], numBins) : getTicksHistogramDiscrete(extent[0], extent[1], numBins);
 
     // -----
     // compute the histograms and its properties
     let histogramTop = d3.histogram().domain(xScaleHistogram.domain()).thresholds(ticks)(distributionTop);
     let histogramBottom = d3.histogram().domain(xScaleHistogram.domain()).thresholds(ticks)(distributionBottom);
+
+    console.log("[vplot.js] histogramTop", histogramTop);
+    console.log("[vplot.js] histogramBottom", histogramBottom);
 
     // scale to draw the histogram
     let yScaleHistograms = undefined;
@@ -1291,15 +1294,22 @@ class VPlot{
       return d3.max([maxHistTop, maxHistBottom]);
     }
 
+
     /**
-     * Returns the histogram ticks for continuous distributions.
+     * Returns the histogram ticks for discrete distributions.
      * @param min min value in distribution
      * @param max max value in distribution
+     * @param maxNumBins maximum number of bis to fix issues with large ranges
      * @return {Array}
      */
-    function getTicksHistogramDiscrete(min, max){
+    function getTicksHistogramDiscrete(min, max, maxNumBins= 10){
+      if(max > maxNumBins) {
+        return getTicksHistogramContinuous(min, max, maxNumBins)
+      }
+
+      // @TS: This function causes trouble for very high integer ranges. [FIXED]
       let ticks = [];
-      for(let i=1; i<=max; i++){
+      for(let i=1; i<=max; i++) {
         ticks.push(min + i);
       }
       return ticks;

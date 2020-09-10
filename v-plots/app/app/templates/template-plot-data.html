@@ -131,23 +131,24 @@
             </md-card-content>
           </md-card>
           <md-card ng-if="currentNavItem === 'database'">
-            <md-card-title>
-              <md-card-title-text>
-                <span class="md-subhead">
-                  Clicking the left half of the column will use the left distribution while clicking on the right half will use the right distribution.
-                </span>
-              </md-card-title-text>
-            </md-card-title>
+<!--            <md-card-title>-->
+<!--              <md-card-title-text>-->
+<!--                <span class="md-subhead">-->
+<!--                  Clicking the left half of the column will use the left distribution while clicking on the right half will use the right distribution.-->
+<!--                </span>-->
+<!--              </md-card-title-text>-->
+<!--            </md-card-title>-->
             <md-card-content>
               <div class="dbTableWrapper">
                 <div class="dbTableRow" ng-repeat="(tname,tcols) in schema">
                   <span class="dbTableName">{{tname}}</span>
                   <div class="dbTableCols">
-                    <div class="dbTableCol" 
-                      ng-repeat="(idx,col) in tcols" 
+                    <div class="dbTableCol"
+                         ng-style="{background: colorColFn(col)}"
+                      ng-repeat="(idx,col) in tcols"
                       ng-click="dbColumnAsVPlot($event,tname,col)"
                       ng-mousemove="onMouseOverColFn($event,col)"
-                      ng-mouseout="onMouseOutColFn($event)">
+                      ng-mouseout="onMouseOutColFn($event,col)">
                       <span class="dbTableColName">{{col.column_name}}</span>
                       <span class="dbTableColType">{{col.data_type}}</span>
                     </div>

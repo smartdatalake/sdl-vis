@@ -7,16 +7,37 @@ angular.module('codeApp')
   .service('histogramfunctions', function () {
 
     /**
+     * Returns the histogram ticks for discrete distributions.
+     * @param min min value in distribution
+     * @param max max value in distribution
+     * @param maxNumBins maximum number of bis to fix issues with large ranges
+     * @return {Array}
+     */
+    this.getTicksHistogramDiscrete = function(min, max, maxNumBins= 10){
+      if(max > maxNumBins) {
+        return this.getTicksHistogramContinuous(min, max, maxNumBins)
+      }
+
+      // @TS: This function causes trouble for very high integer ranges. [FIXED]
+      let ticks = [];
+      for(let i=1; i<=max; i++) {
+        ticks.push(min + i);
+      }
+      return ticks;
+    };
+
+    /**
      * Returns the histogram ticks for continuous distributions.
      * @param min min value in distribution
      * @param max max value in distribution
      * @param numBins the number of bins.
      * @return {Array}
      */
-    this.getTicksHistogramDiscrete = function(min, max){
+    this.getTicksHistogramContinuous = function(min, max, numBins){
+      let stepSize = (max - min) / (numBins);
       let ticks = [];
-      for(let i=1; i<max; i++){
-        ticks.push(min + i);
+      for(let i=0; i<numBins-1; i++){
+        ticks.push(min + (i+1)*stepSize);
       }
       return ticks;
     };

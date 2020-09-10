@@ -45,7 +45,8 @@ class BarchartCumulative {
     let histogramTop = d3.histogram().domain(xScaleHistogram.domain()).thresholds(ticks)(distributionTop);
     let histogramBottom = d3.histogram().domain(xScaleHistogram.domain()).thresholds(ticks)(distributionBottom);
 
-    console.log("histogramTop", histogramTop);
+    console.log("[barchart-cumulative.js] histogramTop", histogramTop);
+    console.log("[barchart-cumulative.js] histogramBottom", histogramBottom);
 
     // make the histograms cumulative
     let lastTop = [];

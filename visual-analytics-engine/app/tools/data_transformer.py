@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 def transform(df, transformation_spec):
     for ts in transformation_spec:
         if ts["type"] == "bin":
@@ -19,7 +20,7 @@ def binning(df, bins, field):
     col = df[field].values
     count, division = np.histogram(col, bins=bins)
 
-    df = pd.DataFrame({'x0': division[0:-1], 'x1': division[1:], 'count': count})
+    df = pd.DataFrame({'start': division[0:-1], 'end': division[1:], 'count': count})
     return df
 
 

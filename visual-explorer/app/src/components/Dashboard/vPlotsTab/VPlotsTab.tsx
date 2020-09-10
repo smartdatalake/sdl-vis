@@ -13,7 +13,7 @@ const VPlotsTab = (props: Props) => {
             <iframe
                 title="vplots"
                 className="v-plots-iframe"
-                src="http://localhost:9000"
+                src="http://localhost:3003"
             />
         </div>
     );

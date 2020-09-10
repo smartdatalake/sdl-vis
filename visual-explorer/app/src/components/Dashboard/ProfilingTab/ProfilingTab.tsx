@@ -13,7 +13,7 @@ const ProfilingTab = (props: Props) => {
             <iframe
                 title="jupyterlab"
                 className="jupyter-iframe"
-                src="http://localhost:8889"
+                src="http://localhost:3002"
             />
         </div>
     );

@@ -2,12 +2,15 @@ import * as React from 'react';
 import sizeMe from 'react-sizeme';
 
 interface Props {
-    width?: number | string;
+    centeredAtStart?: boolean;
+    className?: string;
+    contentHeight?: number;
+    contentWidth?: number;
     height?: number | string;
+    id?: string;
     onClick?: React.MouseEventHandler<SVGSVGElement>;
     onDoubleClick?: React.MouseEventHandler<SVGSVGElement>;
-    id?: string;
-    className?: string;
+    width?: number | string;
 }
 
 interface State {
@@ -34,6 +37,23 @@ class SVGPanZoom extends React.Component<Props & sizeMe.SizeMeProps, State> {
         this.handleMouseUp = this.handleMouseUp.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleClick = this.handleClick.bind(this);
+    }
+
+    componentDidMount() {
+        const centeredAtStart = this.props.centeredAtStart;
+        const contentHeight = this.props.contentHeight || 0;
+        const contentWidth = this.props.contentWidth || 0;
+        const height = this.props.size.height as number;
+        const width = this.props.size.width as number;
+
+        if (centeredAtStart && height && width) {
+            this.setState({
+                panningOffset: {
+                    x: -(width / 2) + (contentWidth / 2),
+                    y: -(height / 2) + (contentHeight / 2),
+                },
+            });
+        }
     }
 
     componentDidUpdate(prevProps: any) {

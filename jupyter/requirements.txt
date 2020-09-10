@@ -1,5 +1,8 @@
-sqlalchemy
-psycopg2-binary
-numpy
-matplotlib
-avatica-python
+# Database adapters
+phoenixdb
+jaydebeapi
+
+# Packages for vis & data science
+jupyterlab
+plotly==4.9.0
+ipywidgets>=7.5

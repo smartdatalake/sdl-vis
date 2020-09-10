@@ -16,7 +16,8 @@ services:
     volumes:
       - ./visual-explorer/app:/usr/src/app
     working_dir: /usr/src/app
-    command: ["sh", "-c", "npm install && npm run-script start"]
+    # `npm rebuild node-sass` is a workaround for https://gitlab.dbvis.de/SmartDataLake/development/-/issues/8.
+    command: ["sh", "-c", "npm install && npm rebuild node-sass && npm run-script start"]
     depends_on:
       - visual-analytics-engine
     networks:
@@ -32,14 +33,32 @@ services:
       context: ./visual-analytics-engine/
       dockerfile: ./Dockerfile
     ports:
-      - "8080:8080"
+      - "3001:8080"
     volumes:
       - ./visual-analytics-engine/app:/usr/src/app
       - ./visual-analytics-engine/data/input:/data/input
-      - data:/data/output
-    env_file: ./test-db/postgres.env
+      - vae-data:/data/output
+    env_file:
+      - ./config/postgres.env
+      - ./config/proteus.env
+      - ./config/qal.env
     working_dir: /usr/src/app
     command: ["python", "app.py", "--port", "8080", "--dev"]
+    depends_on:
+      - redis
+    networks:
+      - sdl_net
+
+  #########
+  # Redis #
+  #########
+  redis:
+    container_name: sdl_redis
+    image: redis:6.0-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: redis
+    volumes:
+      - redis-data:/data
     networks:
       - sdl_net
 
@@ -52,10 +71,14 @@ services:
     build:
       context: ./jupyter
       dockerfile: Dockerfile
+    volumes:
+      - ./jupyter/notebooks:/home/jovyan/notebooks
     ports:
-      - 8889:8888
+      - "3002:3002"
+    env_file:
+      - ./config/proteus.env
     working_dir: /home/jovyan
-    command: ["sh", "-c", "cd /home/jovyan/notebooks && jupyter-lab"]
+    command: ["sh", "-c", "cd /home/jovyan/notebooks && jupyter-lab --port=3002"]
     networks:
       - sdl_net
 
@@ -66,7 +89,7 @@ services:
     container_name: sdl_v-plots
     image: node:latest
     ports:
-      - "9000:9000"
+      - "3003:9000"
     volumes:
       - ./v-plots/app:/usr/src/app
     working_dir: /usr/src/app
@@ -83,13 +106,16 @@ services:
     volumes:
       - ./test-db/initscripts/:/docker-entrypoint-initdb.d/
       - ./test-db/data/:/data/
-    env_file: ./test-db/postgres.env
+    env_file:
+      - ./config/postgres.env
     ports:
-      - "5432:5432"
+      - "3004:5432"
     networks:
       - sdl_net
 
 
 volumes:
-  data:
+  vae-data:
+    external: false
+  redis-data:
     external: false

@@ -12,7 +12,6 @@ interface Props {
 }
 
 const TimeSeriesTab = (props: Props) => {
-
     return (
         <div className={'timeseries-tab'}>
             <div style={{ position: 'relative' }}>
@@ -24,5 +23,4 @@ const TimeSeriesTab = (props: Props) => {
     );
 };
 
-
-export default (TimeSeriesTab);
+export default TimeSeriesTab;

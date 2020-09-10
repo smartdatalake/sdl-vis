@@ -4,17 +4,19 @@ import os
 import pathlib
 import sys
 import warnings
+import hashlib
 
 import networkx as nx
 from flask import Flask, request
+from flask_cache import Cache
 from flask_cors import CORS
 from gevent.pywsgi import WSGIServer
 
-import proj_helpers
-from tools.timeseries_manager import TimeSeriesManager
+from db import PostgresManager, ProteusManager, QALManager
 from mining_engine import cluster_graph_hierarchical
 from tools.data_transformer import transform
-from tools.db_manager import DBManager
+from tools.simsearch_manager import SimSearchManager
+from tools.timeseries_manager import TimeSeriesManager
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -29,13 +31,40 @@ POSTGRES_DB = os.environ["POSTGRES_DB"]
 POSTGRES_USER = os.environ["POSTGRES_USER"]
 POSTGRES_PASSWORD = os.environ["POSTGRES_PASSWORD"]
 
+PROTEUS_URL = os.environ["PROTEUS_URL"]
+PROTEUS_USER = os.environ["PROTEUS_USER"]
+PROTEUS_PASSWORD = os.environ["PROTEUS_PASSWORD"]
+
+QAL_ENDPOINT = os.environ["QAL_ENDPOINT"]
+
 
 def make_flask_app() -> Flask:
     app = Flask(__name__)
+    cache = Cache(app, config={
+        'DEBUG': True,
+        'CACHE_TYPE': 'redis',
+        'CACHE_KEY_PREFIX': 'vaecache',
+        'CACHE_DEFAULT_TIMEOUT': 86400,
+        'CACHE_REDIS_HOST': 'redis',
+        'CACHE_REDIS_PORT': '6379'
+    })
+
+    # Custom function to also include JSON request body into caching hash
+    def make_cache_key(*args, **kwargs):
+        args_str = json.dumps(dict(request.json), sort_keys=True)
+
+        path_str = str(request.path)
+        args_hash_str = str(hashlib.sha256(args_str.encode("utf-8")).hexdigest())
+        key_str = path_str + "/" + args_hash_str
+        # print("Cache key:", key_str, json.dumps(dict(request.json), sort_keys=True))
+        return key_str
 
     create_paths()
 
-    db_manager = DBManager(POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, "test-db")
+    simsearch_manager = SimSearchManager()
+    postgres_manager = PostgresManager(POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, "test-db")
+    proteus_manager = ProteusManager(PROTEUS_URL, PROTEUS_USER, PROTEUS_PASSWORD)
+    qal_manager = QALManager(QAL_ENDPOINT)
     timeseries_manager = TimeSeriesManager()
 
     with app.app_context():
@@ -48,7 +77,12 @@ def make_flask_app() -> Flask:
         with open(f'/data/output/graph/graph_nodelink.json', 'w') as outfile:
             json.dump(clustered_graph["nodelink"], outfile, indent=2)
 
-    proj_helpers.initProjections()
+    # @TS: Legacy code. Removed.
+    # proj_helpers.initProjections()
+
+    @app.route('/', methods=['POST'])
+    def index():
+        return ''
 
     @app.route('/graph', methods=['POST'])
     def graph_route():
@@ -56,17 +90,28 @@ def make_flask_app() -> Flask:
 
     # Renamed from /tables to /schema to avoid confusion
     @app.route('/schema', methods=['POST'])
+    @cache.cached(timeout=432000, key_prefix=make_cache_key)
     def schema_route():
         args = request.json
 
-        schema = db_manager.query_schema(args["table"] if "table" in args else None)
+        if "proteus" in args and args["proteus"]:
+            db_manager = proteus_manager
+        else:
+            db_manager = postgres_manager
 
+        schema = db_manager.query_schema(args["tables"] if "tables" in args else None)
         return json.dumps(schema)
 
     # Renamed from /column to /table to avoid confusion
     @app.route('/table', methods=['POST'])
+    @cache.cached(timeout=432000, key_prefix=make_cache_key)
     def table_route():
         args = request.json
+
+        if "proteus" in args and args["proteus"]:
+            db_manager = proteus_manager
+        else:
+            db_manager = postgres_manager
 
         if "table" in args:
             df = db_manager.query_table(
@@ -79,10 +124,16 @@ def make_flask_app() -> Flask:
         return df.to_json(orient="records")
 
     @app.route('/table/transform', methods=['POST'])
+    @cache.cached(timeout=432000, key_prefix=make_cache_key)
     def table_transform_route():
         args = request.json
 
-        if "table" and "transform" in args:
+        if "proteus" in args and args["proteus"]:
+            db_manager = proteus_manager
+        else:
+            db_manager = postgres_manager
+
+        if "table" in args and "transform" in args:
             rows = db_manager.query_table(
                 args["table"],
                 args["columns"] if "columns" in args else None,
@@ -94,23 +145,42 @@ def make_flask_app() -> Flask:
 
         return df.to_json(orient="records")
 
+    @app.route('/qal', methods=['POST'])
+    @cache.cached(timeout=432000, key_prefix=make_cache_key)
+    def qal_route():
+        args = request.json
+
+        if "table" in args and "op" in args:
+            result = qal_manager.query(args["table"],
+                                       args["op"])
+        else:
+            raise KeyError("Key 'table' or 'op' missing in query JSON.")
+
+        return json.dumps(result)
+
     @app.route('/simsearch', methods=['POST'])
-    def simsearch_route():
+    @cache.cached(timeout=432000, key_prefix=make_cache_key)
+    def simsearch_route_new():
         args = request.json
-        print(f"projection route called {args}", flush=True)
-        retobj = None
-        retobj = proj_helpers.getprojection(args)
 
-        return retobj
+        return simsearch_manager.handle_request(args)
 
-    @app.route('/simsearch/prefetch', methods=['POST'])
-    def simsearch_prefetch_route():
-        args = request.json
-        print(f"prefetching results for {args}", flush=True)
-        retobj = None
-        retobj = proj_helpers.getprefetch(args)
-
-        return retobj
+    # @TS: Legacy code. Removed.
+    # @app.route('/simsearch', methods=['POST'])
+    # def simsearch_route():
+    #     args = request.json
+    #     print(f"projection route called {args}", flush=True)
+    #     retobj = proj_helpers.getprojection(args)
+    #
+    #     return retobj
+    #
+    # @app.route('/simsearch/prefetch', methods=['POST'])
+    # def simsearch_prefetch_route():
+    #     args = request.json
+    #     print(f"prefetching results for {args}", flush=True)
+    #     retobj = proj_helpers.getprefetch(args)
+    #
+    #     return retobj
 
     @app.route('/timeseries', methods=['POST'])
     def get_timeseries_data():
@@ -123,7 +193,6 @@ def make_flask_app() -> Flask:
         args = request.json
         print("getting all comps", flush=True)
         return timeseries_manager.getAllCompanies(args)
-
 
     return app
 
@@ -143,7 +212,7 @@ def main(args):
     if args.dev:
         app.debug = True
         print(f"Serving on port {args.port} in development mode.")
-        app.run(port=args.port, host='0.0.0.0')
+        app.run(port=args.port, host='0.0.0.0', threaded=True)
     else:
         http_server = WSGIServer(('0.0.0.0', args.port), app, log=sys.stdout)
         print(f"Serving on port {args.port} in WSGI server mode.")

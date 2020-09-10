@@ -4,10 +4,10 @@ import { IApplicationState } from 'redux-types';
 import './Dashboard.scss';
 import { Tab, Tabs } from 'react-bootstrap';
 import HierarchicalGraphTab from 'components/Dashboard/HierarchicalGraphTab';
-import SimSearchProjectionTab from 'components/Dashboard/SimSearchProjectionTab';
+import SimSearchProjectionTab from 'components/Dashboard/SimSearchProjectionTab/SimilaritySearchTab';
 import ProfilingTab from 'components/Dashboard/ProfilingTab';
 import VPlotsTab from 'components/Dashboard/vPlotsTab';
-import TimeSeriesTab from 'components/Dashboard/TimeSeriesTab'
+import TimeSeriesTab from 'components/Dashboard/TimeSeriesTab';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface IDashboardProps {
@@ -18,8 +18,9 @@ const Dashboard = (props: IDashboardProps) => {
     return (
         <div className={'dashboard'}>
             <Tabs
-                defaultActiveKey="time-series"
+                defaultActiveKey="simsearch-projection"
                 id="uncontrolled-tab-example"
+                style={{ flexGrow: 0 }}
             >
                 <Tab eventKey="jupyter-profiling" title="Data Profiling">
                     <ProfilingTab store={props.store} />
@@ -31,7 +32,7 @@ const Dashboard = (props: IDashboardProps) => {
                     <VPlotsTab store={props.store} />
                 </Tab>
                 <Tab eventKey="simsearch-projection" title="Similarity Search">
-                    <SimSearchProjectionTab store={props.store} />
+                    <SimSearchProjectionTab />
                 </Tab>
                 <Tab eventKey="hierarchical-graph" title="Entity Resolution">
                     <HierarchicalGraphTab store={props.store} />

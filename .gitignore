@@ -1,2 +1,5 @@
 # Ignore docker-compose *.env files, where passwords are stored
 **/*.env
+
+# Ignore configuration of JetBrains IDE
+.idea
