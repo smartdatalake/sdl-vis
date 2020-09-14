@@ -17,6 +17,7 @@ from mining_engine import cluster_graph_hierarchical
 from tools.data_transformer import transform
 from tools.simsearch_manager import SimSearchManager
 from tools.timeseries_manager import TimeSeriesManager
+from tools.gcore_manager import GCoreManager
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -36,6 +37,7 @@ PROTEUS_USER = os.environ["PROTEUS_USER"]
 PROTEUS_PASSWORD = os.environ["PROTEUS_PASSWORD"]
 
 QAL_ENDPOINT = os.environ["QAL_ENDPOINT"]
+GCORE_ENDPOINT = os.environ["GCORE_ENDPOINT"]
 
 
 def make_flask_app() -> Flask:
@@ -66,6 +68,7 @@ def make_flask_app() -> Flask:
     proteus_manager = ProteusManager(PROTEUS_URL, PROTEUS_USER, PROTEUS_PASSWORD)
     qal_manager = QALManager(QAL_ENDPOINT)
     timeseries_manager = TimeSeriesManager()
+    gcore_manager = GCoreManager(GCORE_ENDPOINT)
 
     with app.app_context():
         graph = nx.read_gpickle("/data/input/graph/graph.gpickle")
@@ -87,6 +90,67 @@ def make_flask_app() -> Flask:
     @app.route('/graph', methods=['POST'])
     def graph_route():
         return clustered_graph["hierarchical"]
+
+    ############graph g-core entity resolution - routes###############
+
+    #graph schema
+    @app.route("/gcore/schema/<string:graph_name>")  # ok
+    def get_schema(graph_name):
+        return gcore_manager.graph_schema(graph_name)
+
+    @app.route("/gcore/availableGraphs")
+    def get_graphdb():
+        return gcore_manager.get_graphs()
+
+    @app.route("/gcore/er/setggds", methods=['POST'])
+    def set_ggds():
+        args = request.json
+        return gcore_manager.set_ggds(args)
+
+    @app.route("/gcore/er/getggds")
+    def get_ggds():
+        return gcore_manager.get_ggds()
+
+    @app.route("/gcore/er/run")
+    def run_er():
+        return gcore_manager.run_ER()
+
+    @app.route("/gcore/query/select", methods=['POST'])
+    def select_query():
+        args = request.json
+        query = args["query"]
+        limit = args["limit"]
+        print("here select panel" + query)
+        return gcore_manager.selectQuery(query, limit)
+
+    @app.route("/gcore/query/construct", methods=['POST'])
+    def construct_query():
+        args = request.json
+        query = args["query"]
+        limit = args["limit"]
+        print("here construct panel" + query)
+        return gcore_manager.constructQuery(query, limit)
+
+    #args for both select and graph neighbor
+    # json format for "passing node information"
+    # {
+    #        "nodeLabel": "ProductAmazon",
+    #        "id": "1",
+    #        "edgeLabel": "",
+    #        "graphName": "Amazon",
+    #        "limit": -1
+    #    }
+    @app.route("/gcore/query/select-neighbor", methods=['POST'])
+    def select_neighbor():
+        args = request.json
+        return gcore_manager.getNeighbors(args)
+
+    @app.route("/gcore/query/graph-neighbor", methods=['POST'])
+    def graph_neighbor():
+        args = request.json
+        return gcore_manager.getNeighborsGraph(args)
+
+    ##############################
 
     # Renamed from /tables to /schema to avoid confusion
     @app.route('/schema', methods=['POST'])
