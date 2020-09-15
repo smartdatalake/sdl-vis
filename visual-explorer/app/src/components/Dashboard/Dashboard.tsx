@@ -34,12 +34,12 @@ const Dashboard = (props: IDashboardProps) => {
                 <Tab eventKey="simsearch-projection" title="Similarity Search">
                     <SimSearchProjectionTab />
                 </Tab>
-                <Tab eventKey="hierarchical-graph" title="Entity Resolution">
-                    <HierarchicalGraphTab store={props.store} />
-                </Tab>
-                <Tab eventKey="time-series" title="Time Series">
-                    <TimeSeriesTab store={props.store} />
-                </Tab>
+                {/*<Tab eventKey="hierarchical-graph" title="Entity Resolution">*/}
+                {/*    <HierarchicalGraphTab store={props.store} />*/}
+                {/*</Tab>*/}
+                {/*<Tab eventKey="time-series" title="Time Series">*/}
+                {/*    <TimeSeriesTab store={props.store} />*/}
+                {/*</Tab>*/}
             </Tabs>
         </div>
     );

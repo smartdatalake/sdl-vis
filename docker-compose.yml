@@ -1,8 +1,5 @@
 version: '3.7'
 
-networks:
-  sdl_net:
-   name: sdl_net
 
 services:
   #######################
@@ -20,8 +17,6 @@ services:
     command: ["sh", "-c", "npm install && npm rebuild node-sass && npm run-script start"]
     depends_on:
       - visual-analytics-engine
-    networks:
-      - sdl_net
 
   ###############################
   # SDL Visual Analytics Engine #
@@ -32,8 +27,6 @@ services:
     build:
       context: ./visual-analytics-engine/
       dockerfile: ./Dockerfile
-    ports:
-      - "3001:8080"
     volumes:
       - ./visual-analytics-engine/app:/usr/src/app
       - ./visual-analytics-engine/data/input:/data/input
@@ -42,25 +35,27 @@ services:
       - ./config/postgres.env
       - ./config/proteus.env
       - ./config/qal.env
+      - ./config/redis.env
     working_dir: /usr/src/app
-    command: ["python", "app.py", "--port", "8080", "--dev"]
+    command: ["python", "app.py", "--port", "3001", "--dev"]
     depends_on:
       - redis
-    networks:
-      - sdl_net
+    network_mode: "host"
 
   #########
   # Redis #
   #########
   redis:
     container_name: sdl_redis
-    image: redis:6.0-alpine
-    command: ["redis-server", "--appendonly", "yes"]
+    image: redis:6.0
+    ports:
+      - "6379:6379"
+    env_file:
+      - ./config/redis.env
+    command: ["sh", "-c", "redis-server --appendonly yes --requirepass $${REDIS_PASSWORD}"]
     hostname: redis
     volumes:
       - redis-data:/data
-    networks:
-      - sdl_net
 
   ###############
   # JUPYTER LAB #
@@ -73,14 +68,11 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./jupyter/notebooks:/home/jovyan/notebooks
-    ports:
-      - "3002:3002"
     env_file:
       - ./config/proteus.env
     working_dir: /home/jovyan
     command: ["sh", "-c", "cd /home/jovyan/notebooks && jupyter-lab --port=3002"]
-    networks:
-      - sdl_net
+    network_mode: "host"
 
   ###########
   # V-Plots #
@@ -94,8 +86,6 @@ services:
       - ./v-plots/app:/usr/src/app
     working_dir: /usr/src/app
     command: ["sh", "-c", "npm install && npx bower --allow-root install && npx grunt serve"]
-    networks:
-      - sdl_net
   
   ####################
   # Postgres Test DB #
@@ -110,8 +100,6 @@ services:
       - ./config/postgres.env
     ports:
       - "3004:5432"
-    networks:
-      - sdl_net
 
 
 volumes:

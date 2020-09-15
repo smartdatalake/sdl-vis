@@ -35,6 +35,9 @@ PROTEUS_URL = os.environ["PROTEUS_URL"]
 PROTEUS_USER = os.environ["PROTEUS_USER"]
 PROTEUS_PASSWORD = os.environ["PROTEUS_PASSWORD"]
 
+REDIS_HOST = os.environ["REDIS_HOST"]
+REDIS_PASSWORD = os.environ["REDIS_PASSWORD"]
+
 QAL_ENDPOINT = os.environ["QAL_ENDPOINT"]
 
 
@@ -45,7 +48,8 @@ def make_flask_app() -> Flask:
         'CACHE_TYPE': 'redis',
         'CACHE_KEY_PREFIX': 'vaecache',
         'CACHE_DEFAULT_TIMEOUT': 86400,
-        'CACHE_REDIS_HOST': 'redis',
+        'CACHE_REDIS_HOST': REDIS_HOST,
+        'CACHE_REDIS_PASSWORD': REDIS_PASSWORD,
         'CACHE_REDIS_PORT': '6379'
     })
 
