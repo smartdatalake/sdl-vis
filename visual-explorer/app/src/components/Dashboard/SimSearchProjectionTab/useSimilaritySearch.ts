@@ -2,7 +2,6 @@ import { cloneDeep } from 'lodash';
 import { useContext, useState } from 'react';
 import { HttpCodes } from 'typed-rest-client/HttpClient';
 import { IRestResponse, RestClient } from 'typed-rest-client/RestClient';
-import useAsynchronousEffect from '../../../types/useAsynchronousEffect';
 import SimilaritySearchContext from './Context';
 import { Node, WeightedEdge } from './Projection/ProjectionSVG';
 import { ProjectionAlgorithm } from './ProjectionParameters';
@@ -13,108 +12,155 @@ import {
     SearchParameters,
     VaryingSearchParameters,
 } from './SearchParameters';
+import { VISUAL_ANALYTICS_ENGINE } from 'backend-urls';
+import { useAsync } from 'react-use';
 
 export type SimilaritySearchStates = {
-    [attribute in SearchParameterName]: VaryingSimilarityGraphs
+    [attribute in SearchParameterName]: VaryingSimilarityGraphs;
 } & {
     current: SimilarityGraph;
 };
 
 export interface SimilarityGraph {
-    adjMat: WeightedEdge[],
-    points: Node[]
+    adjMat: WeightedEdge[];
+    points: Node[];
 }
 
 interface VaryingResponses {
-    decreased?: Promise<IRestResponse<[SimilarityGraph]>>,
-    increased?: Promise<IRestResponse<[SimilarityGraph]>>
+    decreased?: Promise<IRestResponse<[SimilarityGraph]>>;
+    increased?: Promise<IRestResponse<[SimilarityGraph]>>;
 }
 
 export interface VaryingSimilarityGraphs {
-    decreased?: SimilarityGraph,
-    increased?: SimilarityGraph
+    decreased?: SimilarityGraph;
+    increased?: SimilarityGraph;
 }
 
-const endpoint = '/simsearch';
-const host = 'http://127.0.0.1:3001';
+// TODO: Make this local
+const resultCount: { [key: string]: number } = {};
+let callsMade: number = 0;
+
+const endpoint = 'simsearch';
+const host = VISUAL_ANALYTICS_ENGINE;
 const userAgent = 'frontend';
 const client = new RestClient(userAgent, host);
 
 const useSimilaritySearch = () => {
-    const [similaritySearchStates, setSimilaritySearchStates] = useState<SimilaritySearchStates>();
-    const { projectionParameters, searchParameters, setIsLoading } = useContext(SimilaritySearchContext);
+    const [similaritySearchStates, setSimilaritySearchStates] = useState<
+        SimilaritySearchStates
+    >();
+    const { projectionParameters, searchParameters, setIsLoading } = useContext(
+        SimilaritySearchContext
+    );
 
-    useAsynchronousEffect(async () => {
+    useAsync(async () => {
         if (!projectionParameters || !searchParameters) return;
 
         setIsLoading(true);
 
         const requestParameters: {
-            attributes: SearchParameters | VaryingSearchParameters,
+            attributes: SearchParameters | VaryingSearchParameters;
             projection: {
-                type: ProjectionAlgorithm,
-                k?: number,
-                epsilon?: number,
-                maxIter?: number
-            }
+                type: ProjectionAlgorithm;
+                k?: number;
+                epsilon?: number;
+                maxIter?: number;
+            };
         } = {
             attributes: searchParameters,
             projection: {
                 type: projectionParameters.algorithm,
+                k: projectionParameters.k,
             },
         };
 
         if (projectionParameters.algorithm === ProjectionAlgorithm.MDS) {
-            requestParameters.projection.epsilon = projectionParameters.epsilon === undefined ?
-                defaultProjectionParameters.epsilon : projectionParameters.epsilon;
-            requestParameters.projection.maxIter = projectionParameters.maximumIterations === undefined ?
-                defaultProjectionParameters.maximumIterations : projectionParameters.maximumIterations;
+            requestParameters.projection.epsilon =
+                projectionParameters.epsilon === undefined
+                    ? defaultProjectionParameters.epsilon
+                    : projectionParameters.epsilon;
+            requestParameters.projection.maxIter =
+                projectionParameters.maximumIterations === undefined
+                    ? defaultProjectionParameters.maximumIterations
+                    : projectionParameters.maximumIterations;
         }
 
-        const newSimilaritySearchStates = {} as unknown as SimilaritySearchStates;
-        const responses: (Promise<IRestResponse<[SimilarityGraph]>> | Promise<undefined>)[] = [];
+        const newSimilaritySearchStates = ({} as unknown) as SimilaritySearchStates;
+        const responses: (
+            | Promise<IRestResponse<[SimilarityGraph]>>
+            | Promise<undefined>
+        )[] = [];
         const permutedParameters: (SearchParameterName | undefined)[] = [];
 
-        Array.from(permuteSearchParameterWeight(searchParameters)).forEach(([permutedParameter, searchParametersPermutation]) => {
-            if (permutedParameter === undefined) {
-                requestParameters.attributes = searchParametersPermutation;
+        Array.from(permuteSearchParameterWeight(searchParameters)).forEach(
+            ([permutedParameter, searchParametersPermutation]) => {
+                if (permutedParameter === undefined) {
+                    requestParameters.attributes = searchParametersPermutation;
 
-                responses.push(client.create<[SimilarityGraph]>(endpoint, requestParameters));
-                permutedParameters.push(permutedParameter);
-            } else {
-                const requests: VaryingResponses = {
-                    decreased: undefined,
-                    increased: undefined,
-                };
-                const varyingSearchParameters = searchParametersPermutation as VaryingSearchParameters;
+                    responses.push(
+                        client.create<[SimilarityGraph]>(
+                            endpoint,
+                            requestParameters
+                        )
+                    );
+                    permutedParameters.push(permutedParameter);
+                } else {
+                    const requests: VaryingResponses = {
+                        decreased: undefined,
+                        increased: undefined,
+                    };
+                    const varyingSearchParameters = searchParametersPermutation as VaryingSearchParameters;
 
-                newSimilaritySearchStates[permutedParameter] = {
-                    decreased: undefined,
-                    increased: undefined,
-                };
+                    newSimilaritySearchStates[permutedParameter] = {
+                        decreased: undefined,
+                        increased: undefined,
+                    };
 
-                if (varyingSearchParameters.decreased) {
-                    const decreasedRequestParameters = cloneDeep(requestParameters);
+                    if (varyingSearchParameters.decreased) {
+                        const decreasedRequestParameters = cloneDeep(
+                            requestParameters
+                        );
 
-                    decreasedRequestParameters.attributes = varyingSearchParameters.decreased;
-                    requests.decreased = client.create<[SimilarityGraph]>(endpoint, decreasedRequestParameters);
+                        decreasedRequestParameters.attributes =
+                            varyingSearchParameters.decreased;
+                        requests.decreased = client.create<[SimilarityGraph]>(
+                            endpoint,
+                            decreasedRequestParameters
+                        );
+                    }
+
+                    if (varyingSearchParameters.increased) {
+                        const increasedRequestParameters = cloneDeep(
+                            requestParameters
+                        );
+
+                        increasedRequestParameters.attributes =
+                            varyingSearchParameters.increased;
+                        requests.increased = client.create<[SimilarityGraph]>(
+                            endpoint,
+                            increasedRequestParameters
+                        );
+                    }
+
+                    const immediatelyResolvedPromise: Promise<undefined> = new Promise(
+                        resolve => resolve(undefined)
+                    );
+
+                    responses.push(
+                        requests.decreased
+                            ? requests.decreased
+                            : immediatelyResolvedPromise
+                    );
+                    permutedParameters.push(permutedParameter);
+                    responses.push(
+                        requests.increased
+                            ? requests.increased
+                            : immediatelyResolvedPromise
+                    );
+                    permutedParameters.push(permutedParameter);
                 }
-
-                if (varyingSearchParameters.increased) {
-                    const increasedRequestParameters = cloneDeep(requestParameters);
-
-                    increasedRequestParameters.attributes = varyingSearchParameters.increased;
-                    requests.increased = client.create<[SimilarityGraph]>(endpoint, increasedRequestParameters);
-                }
-
-                const immediatelyResolvedPromise: Promise<undefined> = new Promise(resolve => resolve(undefined));
-
-                responses.push(requests.decreased ? requests.decreased : immediatelyResolvedPromise);
-                permutedParameters.push(permutedParameter);
-                responses.push(requests.increased ? requests.increased : immediatelyResolvedPromise);
-                permutedParameters.push(permutedParameter);
             }
-        });
+        );
 
         /*
          * I abuse the circumstance that `Promise.all` preserves the order of the iterable `responses`. With that, I
@@ -122,14 +168,32 @@ const useSimilaritySearch = () => {
          * subsequent pairs of two responses belong to the parameter listed in `permutedParameters` with the same index.
          * For each pair, the request with decreased parameters appears before the one with increased parameters.
          */
+        callsMade++;
         (await Promise.all(responses)).forEach((response, index) => {
-            if (response && response.statusCode === HttpCodes.OK && response.result) {
+            if (
+                response &&
+                response.statusCode === HttpCodes.OK &&
+                response.result
+            ) {
                 if (index === 0) {
+                    response.result[0].points.forEach((point, idx) => {
+                        if (Object.keys(resultCount).includes(point.id)) {
+                            resultCount[point.id] += 1;
+                        } else {
+                            resultCount[point.id] = 1;
+                        }
+                        point.size = resultCount[point.id] / callsMade;
+                        point.rank = idx === 0 ? 'q' : idx;
+                    });
                     newSimilaritySearchStates.current = response.result[0];
                 } else if (index % 2 === 1) {
-                    newSimilaritySearchStates[permutedParameters[index]!].decreased = response.result[0];
+                    newSimilaritySearchStates[
+                        permutedParameters[index]!
+                    ].decreased = response.result[0];
                 } else {
-                    newSimilaritySearchStates[permutedParameters[index]!].increased = response.result[0];
+                    newSimilaritySearchStates[
+                        permutedParameters[index]!
+                    ].increased = response.result[0];
                 }
             }
         });

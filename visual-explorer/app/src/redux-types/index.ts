@@ -7,11 +7,6 @@
 
 import { combineReducers } from 'redux';
 import { hinParametersReducer, IHinParametersState } from './hin-parameters';
-import { IProjParametersState, projParametersReducer } from './proj-parameters';
-import {
-    IMDSTuningState,
-    mdsParametersReducer,
-} from './proj-parameters/mds-parameters';
 import {
     tSeriesParametersReducer,
     TSeriesParametersState,
@@ -20,8 +15,6 @@ import {
 // The top-level state object
 export interface IApplicationState {
     hinParametersState: IHinParametersState;
-    projParametersState: IProjParametersState;
-    mdsParametersState: IMDSTuningState;
     tSeriesParametersState: TSeriesParametersState;
 }
 
@@ -30,7 +23,5 @@ export interface IApplicationState {
 // the reducer acts on the corresponding IApplicationState property type.
 export const rootReducer = combineReducers<IApplicationState>({
     hinParametersState: hinParametersReducer,
-    projParametersState: projParametersReducer,
-    mdsParametersState: mdsParametersReducer,
     tSeriesParametersState: tSeriesParametersReducer,
 });

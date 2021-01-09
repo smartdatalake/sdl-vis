@@ -1,5 +1,4 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import { Store } from 'redux';
 import { IApplicationState } from 'redux-types';
 import TimeSeriesPanel from './panels/timeseries-parameters';

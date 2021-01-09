@@ -24,10 +24,6 @@ class TimeSeriesSVG extends React.Component<
         size: [400, 800],
     };
 
-    constructor(props: ITimeSeriesVisProps & sizeMe.SizeMeProps) {
-        super(props);
-    }
-
     public render() {
         let vis: React.ReactElement | null = null;
         // let lines = null;

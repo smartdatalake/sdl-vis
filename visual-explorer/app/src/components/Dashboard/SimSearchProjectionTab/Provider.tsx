@@ -1,10 +1,15 @@
 import React, { ReactNode, useState } from 'react';
 import Context from './Context';
-import { ProjectionAlgorithm, ProjectionParameters } from './ProjectionParameters';
+import {
+    ProjectionAlgorithm,
+    ProjectionParameters,
+} from './ProjectionParameters';
 import { SearchParameterName, SearchParameters } from './SearchParameters';
+import { Node } from './Projection/ProjectionSVG';
 
 export const defaultProjectionParameters: ProjectionParameters = {
     algorithm: ProjectionAlgorithm.PCA,
+    k: 15,
     epsilon: 0.001,
     maximumIterations: 300,
 };
@@ -33,10 +38,17 @@ export const defaultSearchParameters: SearchParameters = {
 };
 
 const Provider = ({ children }: { children: ReactNode }) => {
-    const [attributeToPreview, setAttributeToPreview] = useState<SearchParameterName | undefined>(undefined);
+    const [attributeToPreview, setAttributeToPreview] = useState<
+        SearchParameterName | undefined
+    >(undefined);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [projectionParameters, setProjectionParameters] = useState<ProjectionParameters>(defaultProjectionParameters);
-    const [searchParameters, setSearchParameters] = useState<SearchParameters>(defaultSearchParameters);
+    const [projectionParameters, setProjectionParameters] = useState<
+        ProjectionParameters
+    >(defaultProjectionParameters);
+    const [searchParameters, setSearchParameters] = useState<SearchParameters>(
+        defaultSearchParameters
+    );
+    const [highlightedNode, setHighlightedNode] = useState<Node | null>(null);
 
     return (
         <Context.Provider
@@ -49,6 +61,8 @@ const Provider = ({ children }: { children: ReactNode }) => {
                 setProjectionParameters,
                 searchParameters,
                 setSearchParameters,
+                highlightedNode,
+                setHighlightedNode,
             }}
         >
             {children}

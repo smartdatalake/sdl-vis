@@ -6,63 +6,76 @@ import { Badge, Form } from 'react-bootstrap';
 import styled from 'styled-components';
 import SimilaritySearchContext from '../Context';
 import { SearchParameterName, SearchParameterValue } from '../SearchParameters';
+import { FaWindowClose } from 'react-icons/fa';
 
 const EqualSign = styled.span`
-  align-items: center;
-  color: gray;
-  display: flex;
-  font-size: small;
-  justify-content: center;
-  user-select: none;
+    align-items: center;
+    color: gray;
+    display: flex;
+    font-size: small;
+    justify-content: center;
+    user-select: none;
 `;
 
 const Grid = styled.div`
-  display: inline-grid;
-  grid-template-columns: 45px 200px 30px auto 50px;
-  width: 100%;
+    display: inline-grid;
+    grid-template-columns: 45px 200px 30px auto 50px;
+    width: 100%;
 `;
 
 const MultiplicationSign = styled.span`
-  bottom: 0.1em;
-  margin-left: 3px;
-  position: relative;
+    bottom: 0.1em;
+    margin-left: 3px;
+    position: relative;
 `;
 
 const PaddedBadge = styled(Badge)`
-  align-items: center;
-  display: flex;
-  height: 100%;
-  justify-content: center;
-  user-select: none;
-  width: 200px;
+    align-items: center;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    user-select: none;
+    width: 200px;
 `;
 
 const SpacedSlider = styled(Slider)`
-  margin-top: 10px;
+    margin-top: 10px;
 `;
 
-const Switch = styled(Form.Check)`
-  margin: auto 0 auto auto;
+const Switch = styled(FaWindowClose)`
+    margin: auto 0 auto auto;
+    fill: red;
+    font-size: xx-large;
+    cursor: pointer;
 `;
 
 const Weighting = styled.span`
-  align-items: center;
-  color: grey;
-  display: flex;
-  font-size: small;
-  font-style: italic;
-  user-select: none;
+    align-items: center;
+    color: grey;
+    display: flex;
+    font-size: small;
+    font-style: italic;
+    user-select: none;
 `;
 
 const WideForm = styled(Form)`
-  margin-top: 45px;
-  width: 100%;
+    margin-top: 45px;
+    width: 100%;
 `;
 
-const SearchParameter = ({ parameterName, searchParameter }: { parameterName: SearchParameterName, searchParameter: SearchParameterValue }) => {
-    const [isDisabled, setIsDisabled] = useState<boolean>(!searchParameter.active);
+const SearchParameter = ({
+    parameterName,
+    searchParameter,
+}: {
+    parameterName: SearchParameterName;
+    searchParameter: SearchParameterValue;
+}) => {
     const [isHovered, setIsHovered] = useState<boolean>(false);
-    const { searchParameters, setAttributeToPreview, setSearchParameters } = useContext(SimilaritySearchContext);
+    const {
+        searchParameters,
+        setAttributeToPreview,
+        setSearchParameters,
+    } = useContext(SimilaritySearchContext);
 
     const generateMarks = () => {
         const marks: { [n: number]: string } = {};
@@ -78,8 +91,10 @@ const SearchParameter = ({ parameterName, searchParameter }: { parameterName: Se
     };
 
     const onValueChanged = (event: FormEvent) => {
-        searchParameter.value = (event.target as HTMLInputElement).value;
-
+        searchParameter.value =
+            parameterName === 'keywords'
+                ? (event.target as HTMLInputElement).value.split(',')
+                : (event.target as HTMLInputElement).value;
         setSearchParameters({
             ...searchParameters!,
             [parameterName]: searchParameter,
@@ -96,8 +111,6 @@ const SearchParameter = ({ parameterName, searchParameter }: { parameterName: Se
     };
 
     const startsHovering = () => {
-        if (isDisabled) return;
-
         setIsHovered(true);
         setAttributeToPreview(parameterName);
     };
@@ -110,8 +123,6 @@ const SearchParameter = ({ parameterName, searchParameter }: { parameterName: Se
     const toggleSearchParameter = () => {
         searchParameter.active = !searchParameter.active;
 
-        setIsDisabled(!searchParameter.active);
-
         setSearchParameters({
             ...searchParameters!,
             [parameterName]: searchParameter,
@@ -121,34 +132,34 @@ const SearchParameter = ({ parameterName, searchParameter }: { parameterName: Se
     let sliderStyle;
 
     if (isHovered) sliderStyle = { boxShadow: '0 0 5px 2px LightGray' };
-    if (isDisabled) sliderStyle = { backgroundColor: '#ccc' };
 
     return (
         <WideForm>
             <Form.Group>
                 <Grid>
-                    <Weighting>{searchParameter.weights[0]}<MultiplicationSign>⨯</MultiplicationSign></Weighting>
-                    <PaddedBadge variant="secondary">{parameterName.toUpperCase()}</PaddedBadge>
+                    <Weighting>
+                        {searchParameter.weights[0]}
+                        <MultiplicationSign>⨯</MultiplicationSign>
+                    </Weighting>
+                    <PaddedBadge variant="secondary">
+                        {parameterName.toUpperCase()}
+                    </PaddedBadge>
                     <EqualSign>=</EqualSign>
                     <Form.Control
                         defaultValue={searchParameter.value.toString()}
                         name={parameterName}
-                        onChange={onValueChanged}
-                        readOnly={isDisabled}
+                        onBlur={onValueChanged}
                         type="text"
                     />
-                    <Switch id={`switch-${parameterName}`} inline={true} type="switch">
-                        <Form.Check.Input
-                            checked={searchParameter.active} onChange={toggleSearchParameter} type="checkbox"
-                        />
-                        <Form.Check.Label />
-                    </Switch>
+                    <Switch
+                        id={`switch-${parameterName}`}
+                        onClick={toggleSearchParameter}
+                    />
                 </Grid>
                 <div onMouseEnter={startsHovering} onMouseLeave={stopsHovering}>
                     <SpacedSlider
                         defaultValue={searchParameter.weights[0]}
                         dots={true}
-                        disabled={isDisabled}
                         marks={generateMarks()}
                         min={0}
                         max={1}

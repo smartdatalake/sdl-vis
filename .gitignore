@@ -3,3 +3,6 @@
 
 # Ignore configuration of JetBrains IDE
 .idea
+
+# Ignore peculiar file
+packages.microsoft.gpg

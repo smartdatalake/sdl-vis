@@ -10,6 +10,8 @@ import useSimilaritySearch, {
     VaryingSimilarityGraphs,
 } from '../useSimilaritySearch';
 import SimilaritySearch from './SimilaritySearch';
+import ProjectionTable from './ProjectionTable';
+import { computeColor } from 'components/Dashboard/SimSearchProjectionTab/Projection/computeColor';
 
 export interface Node {
     x: number;
@@ -19,19 +21,26 @@ export interface Node {
     keywordsScore: number;
     numEmployees: string;
     employeesScore: number;
+    location: number;
+    locationScore: number;
     revenue: string;
     revenueScore: number;
+    totalScore: number;
+    cluster: number;
+    size: number;
+    fillColor: string;
+    rank: string | number;
 }
 
 export interface ColoredNode extends Node {
     attribute: SearchParameterName;
-    color: string;
+    strokeColor: string;
 }
 
 export interface WeightedEdge {
     left: string;
     right: string;
-    score: number
+    score: number;
 }
 
 export const duration = 300;
@@ -41,7 +50,7 @@ export const rootCircleRadius = 7;
 export const stroke = 'gray';
 
 const CenteredSpinner = styled(Spinner)`
-  margin: auto;
+    margin: auto;
 `;
 
 /**
@@ -58,33 +67,56 @@ const ProjectionSVG = () => {
 
     if (!similaritySearch) return <CenteredSpinner animation="grow" />;
 
-    const [xScale, yScale] = computeScalesForSimilaritySearches([similaritySearch]);
+    const [xScale, yScale] = computeScalesForSimilaritySearches([
+        similaritySearch,
+    ]);
+
+    similaritySearch.current.points.forEach(pt => {
+        pt.fillColor = computeColor(pt, xScale, yScale);
+    });
 
     return (
-        <SVGPanZoom
-            centeredAtStart={true}
-            contentHeight={plotSideLength}
-            contentWidth={plotSideLength}
-            height="100%"
-            width="100%"
-        >
-            <SimilaritySearch similaritySearchStates={similaritySearch} xScale={xScale} yScale={yScale} />
-        </SVGPanZoom>
+        <>
+            <SVGPanZoom
+                centeredAtStart={true}
+                contentHeight={plotSideLength}
+                contentWidth={plotSideLength}
+                height="100%"
+                width="100%"
+            >
+                <SimilaritySearch
+                    similaritySearchStates={similaritySearch}
+                    xScale={xScale}
+                    yScale={yScale}
+                />
+            </SVGPanZoom>
+            <ProjectionTable similaritySearchStates={similaritySearch} />
+        </>
     );
 };
 
-const computeScalesForSimilaritySearches = (similaritySearches: SimilaritySearchStates[]) => {
+const computeScalesForSimilaritySearches = (
+    similaritySearches: SimilaritySearchStates[]
+) => {
     const dataPoints = similaritySearches
-        .map(similaritySearch => Object.entries(similaritySearch).map(([key, value]) => {
-            if (key === 'current') {
-                return (value as SimilarityGraph).points;
-            } else {
-                return [
-                    ...((value as VaryingSimilarityGraphs).decreased ? (value as VaryingSimilarityGraphs).decreased!.points : []),
-                    ...((value as VaryingSimilarityGraphs).increased ? (value as VaryingSimilarityGraphs).increased!.points : []),
-                ];
-            }
-        }))
+        .map(similaritySearch =>
+            Object.entries(similaritySearch).map(([key, value]) => {
+                if (key === 'current') {
+                    return (value as SimilarityGraph).points;
+                } else {
+                    return [
+                        ...((value as VaryingSimilarityGraphs).decreased
+                            ? (value as VaryingSimilarityGraphs).decreased!
+                                  .points
+                            : []),
+                        ...((value as VaryingSimilarityGraphs).increased
+                            ? (value as VaryingSimilarityGraphs).increased!
+                                  .points
+                            : []),
+                    ];
+                }
+            })
+        )
         .flat(2);
 
     let minimumX = Infinity;
@@ -99,8 +131,12 @@ const computeScalesForSimilaritySearches = (similaritySearches: SimilaritySearch
         if (dataPoint.y > maximumY) maximumY = dataPoint.y;
     });
 
-    const xScale = scaleLinear().domain([minimumX, maximumX]).range([0, plotSideLength]);
-    const yScale = scaleLinear().domain([minimumY, maximumY]).range([plotSideLength, 0]);
+    const xScale = scaleLinear()
+        .domain([minimumX, maximumX])
+        .range([0, plotSideLength]);
+    const yScale = scaleLinear()
+        .domain([minimumY, maximumY])
+        .range([plotSideLength, 0]);
 
     return [xScale, yScale];
 };

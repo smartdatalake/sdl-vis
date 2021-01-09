@@ -10,16 +10,15 @@ services:
   #######################
   visual-explorer:
     container_name: sdl_visual-explorer
-    image: node:latest
+    image: node:15-slim
     ports:
       - "3000:3000"
     volumes:
       - ./visual-explorer/app:/usr/src/app
     working_dir: /usr/src/app
     # `npm rebuild node-sass` is a workaround for https://gitlab.dbvis.de/SmartDataLake/development/-/issues/8.
-    command: ["sh", "-c", "npm install && npm rebuild node-sass && npm run-script start"]
-    depends_on:
-      - visual-analytics-engine
+    # `CI=true` is a workaround for https://github.com/facebook/create-react-app/issues/8688
+    command: ["sh", "-c", "npm install && npm rebuild node-sass && CI=true npm run-script start"]
     networks:
       - sdl_net
 
@@ -87,7 +86,7 @@ services:
   ###########
   v-plots:
     container_name: sdl_v-plots
-    image: node:latest
+    image: node:14.15.1-buster
     ports:
       - "3003:9000"
     volumes:

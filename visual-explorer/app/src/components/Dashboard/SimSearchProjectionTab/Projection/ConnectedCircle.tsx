@@ -1,7 +1,14 @@
 import { ScaleLinear } from 'd3';
 import React from 'react';
 import { Transition } from 'react-transition-group';
-import { ColoredNode, duration, Node, opaque, rootCircleRadius, stroke } from './ProjectionSVG';
+import {
+    ColoredNode,
+    duration,
+    Node,
+    opaque,
+    rootCircleRadius,
+    stroke,
+} from './ProjectionSVG';
 
 const largeRadius = 5;
 
@@ -25,26 +32,46 @@ const ConnectedCircle = ({
     xScale,
     yScale,
 }: {
-    attributeToPreview?: string,
-    nodesToPreview: ColoredNode[],
-    node?: Node,
-    xScale: ScaleLinear<number, number>,
-    yScale: ScaleLinear<number, number>
+    attributeToPreview?: string;
+    nodesToPreview: ColoredNode[];
+    node?: Node;
+    xScale: ScaleLinear<number, number>;
+    yScale: ScaleLinear<number, number>;
 }) => (
     <>
         {nodesToPreview.map((nodeToPreview, index) => {
-            const isVisible = attributeToPreview !== undefined && attributeToPreview === nodeToPreview.attribute;
-            const radius = nodeToPreview.id === 'rootSearch' ? rootCircleRadius : largeRadius;
+            const isVisible =
+                attributeToPreview !== undefined &&
+                attributeToPreview === nodeToPreview.attribute;
+            const radius =
+                nodeToPreview.id === 'rootSearch'
+                    ? rootCircleRadius
+                    : largeRadius;
 
             // The conditional delay (i.e., last time) is necessary as the animation entry and exit execute in inverse order.
-            const circleTransition = `fill-opacity ${duration}ms ease-in-out ${isVisible ? 0 : duration * 2}ms`;
-            const lineTransition = `stroke-dasharray ${duration * 2}ms ease-in-out ${isVisible ? duration : 0}ms`;
+            const circleTransition = `fill-opacity ${duration}ms ease-in-out ${
+                isVisible ? 0 : duration * 2
+            }ms`;
+            const lineTransition = `stroke-dasharray ${duration *
+                2}ms ease-in-out ${isVisible ? duration : 0}ms`;
             const fillOpacities = {
-                entering: { fillOpacity: 0 },
-                entered: { fillOpacity: opaque },
-                exiting: { fillOpacity: opaque },
-                exited: { fillOpacity: 0 },
-                unmounted: { fillOpacity: 0 },
+                entering: { fillOpacity: 0, stroke: 'none' },
+                entered: {
+                    fillOpacity: opaque,
+                    strokeColor: (n: ColoredNode) => {
+                        if (n.strokeColor) return n.strokeColor;
+                        else return 'none';
+                    },
+                },
+                exiting: {
+                    fillOpacity: opaque,
+                    strokeColor: (n: ColoredNode) => {
+                        if (n.strokeColor) return n.strokeColor;
+                        else return 'none';
+                    },
+                },
+                exited: { fillOpacity: 0, stroke: 'none' },
+                unmounted: { fillOpacity: 0, stroke: 'none' },
             };
             const strokeDashArrays = {
                 entering: { strokeDasharray: `0 100%` },
@@ -56,9 +83,9 @@ const ConnectedCircle = ({
 
             return (
                 <g key={index}>
-                    {node ?
+                    {node ? (
                         <Transition in={isVisible} timeout={duration}>
-                            {state =>
+                            {state => (
                                 <line
                                     stroke={stroke}
                                     style={{
@@ -70,22 +97,23 @@ const ConnectedCircle = ({
                                     y1={yScale(node.y)}
                                     y2={yScale(nodeToPreview.y)}
                                 />
-                            }
-                        </Transition> : null
-                    }
+                            )}
+                        </Transition>
+                    ) : null}
                     <Transition in={isVisible} timeout={duration}>
-                        {state =>
+                        {state => (
                             <circle
                                 cx={xScale(nodeToPreview.x)}
                                 cy={yScale(nodeToPreview.y)}
-                                fill={nodeToPreview.color}
+                                stroke={nodeToPreview.strokeColor}
+                                fill={nodeToPreview.fillColor}
                                 r={radius}
                                 style={{
                                     transition: circleTransition,
                                     ...fillOpacities[state],
                                 }}
                             />
-                        }
+                        )}
                     </Transition>
                 </g>
             );

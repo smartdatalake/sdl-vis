@@ -22,32 +22,50 @@ const Edges = ({
     xScale,
     yScale,
 }: {
-    nodes: Node[],
-    weightedEdges: WeightedEdge[],
-    xScale: ScaleLinear<number, number>,
-    yScale: ScaleLinear<number, number>
+    nodes: Node[];
+    weightedEdges: WeightedEdge[];
+    xScale: ScaleLinear<number, number>;
+    yScale: ScaleLinear<number, number>;
 }) => {
-    const adjacencyDomain = extent(weightedEdges.map(adjacency => adjacency.score)) as [number, number];
+    const adjacencyDomain = extent(
+        weightedEdges.map(adjacency => adjacency.score)
+    ) as [number, number];
     const { attributeToPreview } = useContext(Context);
-    const strokeScale = scaleLog().domain(adjacencyDomain).range([thinEdge, thickEdge]);
+    const strokeScale = scaleLog()
+        .domain(adjacencyDomain)
+        .range([thinEdge, thickEdge]);
+    const { highlightedNode } = useContext(Context);
 
     return (
         <g>
             {weightedEdges.map((adjacency, index) => {
-                if (adjacency.left.length === 0 && adjacency.right.length === 0) return null;
+                if (adjacency.left.length === 0 && adjacency.right.length === 0)
+                    return null;
 
-                const leftNode = nodes.find(dataPoint => getShortID(dataPoint.id) === adjacency.left);
-                const rightNode = nodes.find(dataPoint => getShortID(dataPoint.id) === adjacency.right);
+                const leftNode = nodes.find(
+                    dataPoint =>
+                        getShortID(dataPoint.id) === getShortID(adjacency.left)
+                );
+                const rightNode = nodes.find(
+                    dataPoint =>
+                        getShortID(dataPoint.id) === getShortID(adjacency.right)
+                );
 
                 // One of the IDs is invalid, do not render.
                 if (!leftNode || !rightNode) return null;
 
                 const isVisible = attributeToPreview === undefined;
                 const strokeWidth = strokeScale(adjacency.score);
-                const strokeOpacity = strokeWidth * strokeOpacityScalingFactor;
+                const strokeOpacity =
+                    !highlightedNode ||
+                    highlightedNode.id === leftNode.id ||
+                    highlightedNode.id === rightNode.id
+                        ? (strokeWidth || 0) * strokeOpacityScalingFactor
+                        : 0;
 
                 // The conditional delay (i.e., last time) is necessary as the animation entry and exit execute in inverse order.
-                const lineTransition = `stroke-opacity ${duration}ms ease-in-out ${isVisible ? duration * 2 : 0}ms`;
+                const lineTransition = `stroke-opacity ${duration}ms ease-in-out ${duration /
+                    3}ms`;
                 const strokeOpacities = {
                     entering: { strokeOpacity: 0 },
                     entered: { strokeOpacity },

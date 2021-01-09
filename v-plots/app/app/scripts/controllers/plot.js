@@ -254,6 +254,7 @@ angular.module('codeApp')
 
     // @TS: Helper methods and constants
     const NUMERIC_TYPES = ['integer', 'smallint', 'numeric', 'bigint', 'double'];
+    $scope.useProteus = false;
 
     const isNumericDatatype = (t) => {
       const idx = NUMERIC_TYPES.findIndex(nt => t.toLowerCase().startsWith(nt.toLowerCase()));
@@ -273,7 +274,7 @@ angular.module('codeApp')
         return false;
       };
 
-      if(Array.isArray(value) && value.length > 0) {
+      if (Array.isArray(value) && value.length > 0) {
         return value.reduce((acc, cur) => acc && _isInteger(cur), true)
       }
 
@@ -288,6 +289,10 @@ angular.module('codeApp')
       propertyservice.addPreviousProperties($scope.properties);
     }, true);
 
+    // watch for changes to the useProteus checkbox
+    $scope.$watch('useProteus', function() {
+      $scope.getTablesfromDB();
+    });
 
     /** Modify the grid once it is changed on the GUI.*/
     $scope.$watch('properties.gridGranularity', function () {
@@ -341,14 +346,11 @@ angular.module('codeApp')
     $scope.colorColFn = function (column) {
       if (isNumericDatatype(column.data_type)) {
         return "rgba(2,155,92, 0.5)";
-      }
-      else if (column.data_type.toLowerCase().startsWith("recordtype")) {
+      } else if (column.data_type.toLowerCase().startsWith("recordtype")) {
         return "rgba(97,121,247, 0.2)";
-      }
-      else if (column.data_type.toLowerCase().startsWith("varchar")) {
+      } else if (column.data_type.toLowerCase().startsWith("varchar")) {
         return "rgba(173,83,70, 0.2)"
-      }
-      else if (column.data_type.toLowerCase().startsWith("boolean")) {
+      } else if (column.data_type.toLowerCase().startsWith("boolean")) {
         return "rgba(59,71,82, 0.2)"
       }
 
@@ -397,7 +399,7 @@ angular.module('codeApp')
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(Object.assign({proteus: true, maxRows: 500}, data))
+        body: JSON.stringify(Object.assign({proteus: $scope.useProteus, maxRows: 500}, data))
       });
       return response.json();
     }
@@ -406,18 +408,24 @@ angular.module('codeApp')
      * Get all tablenames and columns from the database.
      * Columns from tables are selectable as datasource.
      */
-    async function getTablesfromDB() {
-      const response = await fetch('http://127.0.0.1:3001/schema', {
-        method: 'POST',
-        mode: 'cors',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({proteus: true})
+    $scope.getTablesfromDB = function() {
+      const queryFn = async () => {
+        const response = await fetch('http://127.0.0.1:3001/schema', {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({proteus: $scope.useProteus})
+        });
+        return response.json();
+      }
+
+      queryFn().then(data => {
+        $scope.schema = data;
       });
-      return response.json();
-    };
+    }
 
 
     /**
@@ -458,7 +466,7 @@ angular.module('codeApp')
         }
 
         if ($scope.isDecimal.top || $scope.isDecimal.bottom)
-         $scope.continuous = true;
+          $scope.continuous = true;
 
         return JSON.parse("[" + distributionString + "]");
       } else {
@@ -495,11 +503,7 @@ angular.module('codeApp')
         instance.expand();
       });
 
-
-      getTablesfromDB().then(data => {
-        console.log("data here", data);
-        $scope.schema = data;
-      });
+      $scope.getTablesfromDB();
     }
 
     init();

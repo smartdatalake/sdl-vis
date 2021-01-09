@@ -17,16 +17,16 @@ const Nodes = ({
     xScale,
     yScale,
 }: {
-    nodesWithPreview: [Node | undefined, ColoredNode[]][],
-    xScale: ScaleLinear<number, number>,
-    yScale: ScaleLinear<number, number>
+    nodesWithPreview: [Node | undefined, ColoredNode[]][];
+    xScale: ScaleLinear<number, number>;
+    yScale: ScaleLinear<number, number>;
 }) => {
     const { attributeToPreview } = useContext(Context);
 
     return (
         <g>
-            {nodesWithPreview.map(([currentNode, nodesToPreview], index) => (
-                nodesToPreview.length > 0 ?
+            {nodesWithPreview.map(([currentNode, nodesToPreview], index) =>
+                nodesToPreview.length > 0 ? (
                     <ConnectedCircle
                         attributeToPreview={attributeToPreview}
                         nodesToPreview={nodesToPreview}
@@ -34,18 +34,20 @@ const Nodes = ({
                         key={index}
                         xScale={xScale}
                         yScale={yScale}
-                    /> : null
-            ))}
-            {nodesWithPreview.map(([currentNode, nodesToPreview], index) => (
-                currentNode ?
+                    />
+                ) : null
+            )}
+            {nodesWithPreview.map(([currentNode, nodesToPreview], index) =>
+                currentNode ? (
                     <CircleWithTooltip
                         attributeToPreview={attributeToPreview}
                         node={currentNode}
                         key={index}
                         xScale={xScale}
                         yScale={yScale}
-                    /> : null
-            ))}
+                    />
+                ) : null
+            )}
         </g>
     );
 };

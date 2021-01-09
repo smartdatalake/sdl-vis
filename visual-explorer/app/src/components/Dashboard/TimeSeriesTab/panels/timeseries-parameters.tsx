@@ -1,14 +1,14 @@
 import 'bootstrap/scss/bootstrap.scss';
 import React from 'react';
 import { connect } from 'react-redux';
-import { Card, Container, Row, Form, Col } from 'react-bootstrap';
+import { Card, Col, Container, Form, Row } from 'react-bootstrap';
 import './panels.scss';
 import { IApplicationState } from 'redux-types';
 import { Store } from 'redux';
 import {
-    TSeriesParametersState,
     addActiveCompany,
     removeActiveCompany,
+    TSeriesParametersState,
 } from 'redux-types/tseries-parameters';
 import * as d3 from 'd3';
 

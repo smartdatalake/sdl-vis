@@ -1,11 +1,13 @@
 export enum ProjectionAlgorithm {
     PCA = 'pca',
     MDS = 'mds',
-    UMAP = 'umap'
+    UMAP = 'umap',
+    FORCE = 'force',
 }
 
 export interface ProjectionParameters {
-    algorithm: ProjectionAlgorithm,
-    epsilon?: number,
-    maximumIterations?: number
+    algorithm: ProjectionAlgorithm;
+    k: number;
+    epsilon?: number;
+    maximumIterations?: number;
 }

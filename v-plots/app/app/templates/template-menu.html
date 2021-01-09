@@ -1,12 +1,24 @@
 <!-- The buttons to open the menu and store the visualization -->
 
-<md-button class="md-fab md-fab-bottom-right" aria-label="Viz Props" ng-click="toggleSideNav('vizProp'); scrollTo('parent-div')" style=" position: fixed; margin-bottom: 2em">
+<div>
+  <md-tooltip md-direction="left">
+    Only works when in EPFL VPN
+  </md-tooltip>
+  <md-checkbox ng-model="$parent.useProteus" aria-label="useProteus">
+    Use Proteus
+  </md-checkbox>
+</div>
+
+<md-button class="md-fab md-fab-bottom-right" aria-label="Viz Props"
+           ng-click="toggleSideNav('vizProp'); scrollTo('parent-div')" style=" position: fixed; margin-bottom: 2em">
   <md-tooltip md-direction="left">Visualization Properties</md-tooltip>
   <md-icon md-svg-src="images/ic_menu_48px.svg"></md-icon>
 </md-button>
 
-<md-fab-speed-dial md-open="downloadVizIsOpen" md-direction="up" ng-hide="false" style="position: fixed; margin-bottom: 8em"
-                   class="md-scale md-fab-bottom-right" ng-mouseenter="downloadVizIsOpen=true" ng-mouseleave="downloadVizIsOpen=false">
+<md-fab-speed-dial md-open="downloadVizIsOpen" md-direction="up" ng-hide="false"
+                   style="position: fixed; margin-bottom: 8em"
+                   class="md-scale md-fab-bottom-right" ng-mouseenter="downloadVizIsOpen=true"
+                   ng-mouseleave="downloadVizIsOpen=false">
   <md-fab-trigger>
     <md-button aria-label="download" class="md-fab">
       <md-tooltip md-direction="left">Download Visualization</md-tooltip>
@@ -15,11 +27,13 @@
   </md-fab-trigger>
 
   <md-fab-actions>
-    <md-button aria-label="SVG" class="md-fab md-raised md-mini" svg-download="{{vizId}}" title="{{filename()}}" type="svg">
+    <md-button aria-label="SVG" class="md-fab md-raised md-mini" svg-download="{{vizId}}" title="{{filename()}}"
+               type="svg">
       <md-tooltip md-direction="left">Download as SVG</md-tooltip>
       SVG
     </md-button>
-    <md-button aria-label="PNG" class="md-fab md-raised md-mini" svg-download="{{vizId}}" title="{{filename()}}" type="png">
+    <md-button aria-label="PNG" class="md-fab md-raised md-mini" svg-download="{{vizId}}" title="{{filename()}}"
+               type="png">
       <md-tooltip md-direction="left">Download as PNG</md-tooltip>
       PNG
     </md-button>

@@ -6,9 +6,10 @@ import { Store } from 'redux';
 import { IApplicationState } from 'redux-types';
 import './timeseries-svg.scss';
 import {
-    TSeriesParametersState,
     setAllCompanies,
+    TSeriesParametersState,
 } from 'redux-types/tseries-parameters';
+import { VISUAL_ANALYTICS_ENGINE } from 'backend-urls';
 
 interface ITSeriesWrapperProps {
     store: Store<IApplicationState>;
@@ -34,7 +35,7 @@ class TimeSeriesWrapper extends Component<
             data: undefined,
         };
 
-        fetch('http://127.0.0.1:3001/timeseries/allcompanies', {
+        fetch(VISUAL_ANALYTICS_ENGINE + '/timeseries/allcompanies', {
             method: 'GET',
         })
             .then(jsonResponse => {
@@ -48,7 +49,7 @@ class TimeSeriesWrapper extends Component<
 
     private constructTimeSeries = memoize(
         (activeCompanies: TSeriesParametersState['activeCompanies']) => {
-            fetch('http://127.0.0.1:3001/timeseries', {
+            fetch(VISUAL_ANALYTICS_ENGINE + '/timeseries', {
                 body: JSON.stringify({
                     activeCompanies,
                 }),

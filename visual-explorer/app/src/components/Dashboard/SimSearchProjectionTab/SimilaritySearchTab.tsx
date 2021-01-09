@@ -5,10 +5,10 @@ import ProjectionPanel from './ProjectionPanel/ProjectionPanel';
 import Provider from './Provider';
 
 const Tab = styled.div`
-  display: flex;
-  flex-grow: 1;
-  height: inherit;
-  position: relative;
+    display: flex;
+    flex-grow: 1;
+    height: inherit;
+    position: relative;
 `;
 
 const SimilaritySearchTab = () => (

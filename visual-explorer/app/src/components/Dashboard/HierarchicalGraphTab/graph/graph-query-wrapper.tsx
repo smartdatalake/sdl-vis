@@ -7,6 +7,7 @@ import GraphSVG from './graph-svg';
 import { hierarchy, interpolateCool } from 'd3';
 import CustomHierarchyNode from 'types/CustomHierarchyNode';
 import { assignRadius, colorHierarchy } from 'tools/hierarchy-preprocessing';
+import { VISUAL_ANALYTICS_ENGINE } from 'backend-urls';
 
 interface IGraphQueryWrapperProps {
     store: Store<IApplicationState>;
@@ -25,7 +26,7 @@ class GraphQueryWrapper extends React.Component<
     // Set the output activations when new entityResolutionThreshold is received as props
     private constructGraph = memoize(
         (entityResolutionThreshold: number, maxHierarchyDepth: number) => {
-            fetch('http://127.0.0.1:3001/graph', {
+            fetch(VISUAL_ANALYTICS_ENGINE + '/graph', {
                 body: JSON.stringify({
                     entity_resolution_threshold: entityResolutionThreshold,
                     max_hierarchy_depth: maxHierarchyDepth,

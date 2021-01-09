@@ -17,12 +17,10 @@ phoenixdb
 jaydebeapi
 
 # Flask server
-# (Explicit versions due to incompatibilities between flask and flask-cache!)
-Flask==0.12.5
+Flask
 flask-cors
 
 # For persistent caching
-# (Explicit versions due to incompatibilities between flask and flask-cache!)
-Flask-Cache==0.13.1
-Werkzeug==0.16.1
+Flask-Caching
+Werkzeug
 redis

@@ -49,8 +49,8 @@ class SVGPanZoom extends React.Component<Props & sizeMe.SizeMeProps, State> {
         if (centeredAtStart && height && width) {
             this.setState({
                 panningOffset: {
-                    x: -(width / 2) + (contentWidth / 2),
-                    y: -(height / 2) + (contentHeight / 2),
+                    x: -(width / 2) + contentWidth / 2,
+                    y: -(height / 2) + contentHeight / 2,
                 },
             });
         }

@@ -7,16 +7,16 @@ import warnings
 import hashlib
 
 import networkx as nx
-from flask import Flask, request
-from flask_cache import Cache
+from flask import Flask, request, make_response
 from flask_cors import CORS
 from gevent.pywsgi import WSGIServer
+from gevent import monkey; monkey.patch_all()
 
 from db import PostgresManager, ProteusManager, QALManager
 from mining_engine import cluster_graph_hierarchical
 from tools.data_transformer import transform
-from tools.simsearch_manager import SimSearchManager
 from tools.timeseries_manager import TimeSeriesManager
+from tools.flask_cache import cache
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -40,17 +40,22 @@ QAL_ENDPOINT = os.environ["QAL_ENDPOINT"]
 
 def make_flask_app() -> Flask:
     app = Flask(__name__)
-    cache = Cache(app, config={
+    cache.init_app(app, config={
         'DEBUG': True,
         'CACHE_TYPE': 'redis',
-        'CACHE_KEY_PREFIX': 'vaecache',
+        'CACHE_KEY_PREFIX': 'vae_flask_',
         'CACHE_DEFAULT_TIMEOUT': 86400,
         'CACHE_REDIS_HOST': 'redis',
         'CACHE_REDIS_PORT': '6379'
     })
 
+    # TODO: Fix circular dependency on cache creation
+    from tools.simsearch_manager import SimSearchManager
+
     # Custom function to also include JSON request body into caching hash
     def make_cache_key(*args, **kwargs):
+        print("request", request)
+
         args_str = json.dumps(dict(request.json), sort_keys=True)
 
         path_str = str(request.path)
@@ -76,9 +81,6 @@ def make_flask_app() -> Flask:
 
         with open(f'/data/output/graph/graph_nodelink.json', 'w') as outfile:
             json.dump(clustered_graph["nodelink"], outfile, indent=2)
-
-    # @TS: Legacy code. Removed.
-    # proj_helpers.initProjections()
 
     @app.route('/', methods=['POST'])
     def index():
@@ -163,24 +165,14 @@ def make_flask_app() -> Flask:
     def simsearch_route_new():
         args = request.json
 
-        return simsearch_manager.handle_request(args)
+        result = simsearch_manager.handle_request(args)
 
-    # @TS: Legacy code. Removed.
-    # @app.route('/simsearch', methods=['POST'])
-    # def simsearch_route():
-    #     args = request.json
-    #     print(f"projection route called {args}", flush=True)
-    #     retobj = proj_helpers.getprojection(args)
-    #
-    #     return retobj
-    #
-    # @app.route('/simsearch/prefetch', methods=['POST'])
-    # def simsearch_prefetch_route():
-    #     args = request.json
-    #     print(f"prefetching results for {args}", flush=True)
-    #     retobj = proj_helpers.getprefetch(args)
-    #
-    #     return retobj
+        # Trying to force content-encoding=identity
+        response = make_response(result)
+        response.headers['content-encoding'] = 'identity'
+        return response
+
+        # return result
 
     @app.route('/timeseries', methods=['POST'])
     def get_timeseries_data():

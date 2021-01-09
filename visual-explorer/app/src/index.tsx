@@ -4,7 +4,6 @@ import { createStore, Store } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import './index.scss';
 import { IApplicationState, rootReducer } from 'redux-types';
-import * as serviceWorker from './serviceWorker';
 import Dashboard from './components/Dashboard';
 
 // Init redux store
@@ -15,8 +14,3 @@ const store = ((): Store<IApplicationState> => {
 })();
 
 ReactDOM.render(<Dashboard store={store} />, document.getElementById('root'));
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();

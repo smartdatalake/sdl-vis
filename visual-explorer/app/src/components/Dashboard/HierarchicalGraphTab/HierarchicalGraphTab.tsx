@@ -20,7 +20,11 @@ const HierarchicalGraphTab = (props: Props) => {
                 <ParameterTuningPanel store={props.store} />
             </div>
 
-            <GraphQueryWrapper store={props.store} />
+            <GraphQueryWrapper
+                store={props.store}
+                entityResolutionThreshold={0.5}
+                maxHierarchyDepth={1}
+            />
         </div>
     );
 };

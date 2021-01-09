@@ -7,6 +7,10 @@ import umap
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS
 from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+from flask import jsonify
+from tools.flask_cache import cache
 
 
 class SimSearchManager:
@@ -18,23 +22,26 @@ class SimSearchManager:
 
     __projection_cols = []  # columns used to compute projection
 
+    @cache.memoize(timeout=86400)
     def _api_call(self, query_conditions):
+        print(query_conditions)
+
         headers = {'api_key': self.__api_key, 'Content-Type': 'application/json'}
         params = {'k': self.__k, 'queries': query_conditions}
-
+        
         data = json.dumps(params)
 
-        try:
-            r = requests.post(self.__service_url, data=data, headers=headers)
-            response = r.json()
-            # print("Received response for ", data, ":\n", response)
-            return response
-        except Exception as e:
-            return json.dumps("Request error." + str(e)), 400
+        return requests.post(self.__service_url, data=data, headers=headers)
 
     def handle_request(self, args):
         self.__k = args.get('projection', {}).get('k', 15)
         self.__projection_cols = []
+
+        #construct root seach object
+        rootSearch = {
+            'id': 'rootSearch',
+            'totalScore': 1
+        }
 
         query_conditions = []
         attributes = args.get('attributes', {})
@@ -51,6 +58,8 @@ class SimSearchManager:
                     'weights': [str(w) for w in attributes[attribute].get('weights', [1])],
                     'decay': 0.01})
                 self.__projection_cols.append('keywordsSim')
+                rootSearch['keywords'] = args.get('attributes').get('keywords', {}).get('value', "")
+                rootSearch['keywordsScore'] = 1
             elif (
                     attribute == 'revenue' and
                     attributes[attribute].get('active', False)
@@ -61,6 +70,8 @@ class SimSearchManager:
                     'weights': [str(w) for w in attributes[attribute].get('weights', [1])],
                     'decay': 0.01})
                 self.__projection_cols.append('revenue')
+                rootSearch['revenue'] = str(args.get('attributes').get('revenue', {}).get('value', 0))
+                rootSearch['revenueScore'] = 1
             elif (
                     attribute == 'employees' and
                     attributes[attribute].get('active', False)
@@ -71,6 +82,8 @@ class SimSearchManager:
                     'weights': [str(w) for w in attributes[attribute].get('weights', [1])],
                     'decay': 0.01})
                 self.__projection_cols.append('numEmployees')
+                rootSearch['numEmployees'] = str(args.get('attributes').get('employees', {}).get('value', 0))
+                rootSearch['employeesScore'] = 1
             elif (
                     attribute == 'location' and
                     attributes[attribute].get('active', False)
@@ -82,20 +95,29 @@ class SimSearchManager:
                     'decay': 0.01})
                 self.__projection_cols.append('lon')
                 self.__projection_cols.append('lat')
+                rootSearch['location'] = str(args.get('attributes').get('location',{}).get('value', ""))
+                rootSearch['locationScore'] = 1
 
         # print(query_conditions, flush=True)
         response = self._api_call(query_conditions)
+
+        if response.status_code != 200:
+            print(f"response: {response}",  flush=True)
+            return jsonify(code=response.status_code, reason="incorrect parameters specified"), response.status_code
+
+        response = response.json()
 
         # add dummy dimension if input only has 1 column
         if len(self.__projection_cols) < 2:
             self.__projection_cols.append('add1')
 
-        # print(response, flush=True)
         if response[0]['rankedResults'] is None:
             try:
-                return json.dumps(response[0]['notification']), 400
+                print(f" {str(response[0]['notification'])}", flush=True)
+                return jsonify(code=400, reason=str(response[0]['notification'])), 400
             except Exception as e:
-                return json.dumps(""), 400
+                print(f"somethings wrong", flush=True)
+                return jsonify(code=400, reason=str(e)), 400
 
         retstr = "["
 
@@ -103,6 +125,8 @@ class SimSearchManager:
             dataframe = pd.DataFrame()
 
             self.__allKeywords = []
+            self.__rootKeywordsBin = self._keywords_to_binary(",".join(args.get('attributes').get('keywords', {}).get('value', "")))
+
             self.__rootKeywordsBin = self._keywords_to_binary(
                 ",".join(args.get('attributes').get('keywords', {}).get('value', "")))
 
@@ -110,6 +134,8 @@ class SimSearchManager:
             for result in response[i]['rankedResults']:
                 entry = dict()
                 entry['id'] = result['id']
+                entry['totalScore'] = result['score']
+
                 # loop over each attribute
                 for attr in result['attributes']:
                     entry[attr.get('name')] = attr.get('value')
@@ -126,13 +152,13 @@ class SimSearchManager:
                 dataframe = dataframe.append(entry, ignore_index=True)
 
             # fix colName mismatch between csv and api
-            dataframe = dataframe.rename(columns={'employees': 'numEmployees'})
+            dataframe = dataframe.rename(columns={'employees': 'numEmployees', '[lon, lat]': 'location', '[lon, lat]Score': 'locationScore'})
 
             if 'keywordsSim' in self.__projection_cols:
-                # pad the keywords vector to len(self.__allKeywords)
-                self.__rootKeywordsBin = self.__rootKeywordsBin.ljust(len(self.__allKeywords), '0')
-                dataframe['keywordsBin'] = dataframe['keywordsBin'].str.pad(width=len(self.__allKeywords), fillchar="0",
-                                                                            side='right')
+
+                #pad the keywords vector to len(self.__allKeywords)
+                self.__rootKeywordsBin = self.__rootKeywordsBin.ljust(len(self.__allKeywords),'0')
+                dataframe['keywordsBin'] = dataframe['keywordsBin'].str.pad(width=len(self.__allKeywords), fillchar="0", side='right')
                 dataframe['keywordsSim'] = 0
 
                 # compute similarity of keywords
@@ -140,31 +166,22 @@ class SimSearchManager:
                     lambda row: self._compare_binary_keywords(row['keywordsBin'])
                     , axis=1)
 
-            try:
-                rootLoc = \
-                    re.findall(r"\(([^\)]+)\)", str(args.get('attributes').get('location', {}).get('value', "(0 0)")))[
-                        0].split(" ")
-            except IndexError:
-                rootLoc = "0 0".split(" ")
+                rootSearch['keywordsBin'] = self.__rootKeywordsBin
+                rootSearch['keywordsSim'] = 1
 
-            # print(rootLoc, flush=True)
+            if 'lon' in self.__projection_cols:
+                rootLoc = "(0 0)"
+                try:
+                    rootLoc = re.findall(r"\(([^\)]+)\)", str(args.get('attributes').get('location',{}).get('value', "(0 0)")))[0].split(" ")
+                except IndexError:
+                    rootLoc = "0 0".split(" ")
+
+                rootSearch['lon'] = rootLoc[0]
+                rootSearch['lat'] = rootLoc[1]
+
             # add root search query
-            dataframe = dataframe.append({
-                'id': 'rootSearch',
-                'keywords': args.get('attributes').get('keywords', {}).get('value', ""),
-                'keywordsScore': 1,
-                'revenue': str(args.get('attributes').get('revenue', {}).get('value', 0)),
-                'revenueScore': 1,
-                'numEmployees': str(args.get('attributes').get('employees', {}).get('value', 0)),
-                'employeesScore': 1,
-                '[lon, lat]': str(args.get('attributes').get('location', {}).get('value', "")),
-                '[lon, lat]Score': 1,
-                'lon': rootLoc[0],
-                'lat': rootLoc[1],
-                'keywordsBin': self.__rootKeywordsBin,
-                'keywordsSim': 1,
-                'totalScore': 1,
-            }, ignore_index=True)
+            dataframe = dataframe.append(rootSearch, ignore_index=True)
+            dataframe = dataframe.sort_values(by=['totalScore'], ascending=False)
 
             # replace empty entries ('') with -1
             for col in self.__projection_cols:
@@ -174,8 +191,6 @@ class SimSearchManager:
             # add dummy dimension if input only has 1 column
             if 'add1' in self.__projection_cols:
                 dataframe['add1'] = 1
-
-            # print(dataframe[['[lon, lat]', 'lon', 'lat']], flush=True)
 
             # fit scaler
             scaler = StandardScaler()
@@ -208,10 +223,29 @@ class SimSearchManager:
                                 dataframe[self.__projection_cols])),
                         columns=['x', 'y']))
 
-            # drop dimensions unnecessary for return object
+            # silhouette coefficient to determine optimal k for k-means
+            distortions = []
+            # if less than 4 results, no need for clustering
+            if dataframe.shape[0] < 4:
+                dataframe['cluster'] = 0
+            else:
+                for n_cluster in range(2, min(dataframe.shape[0]-1,10)):
+                    kmeans = KMeans(n_clusters=n_cluster).fit(dataframe[['x', 'y']])
+                    distortions.append(silhouette_score(dataframe[['x', 'y']], kmeans.labels_, metric='euclidean'))
+            
+                #cluster on x & y values
+                kmeans = KMeans(n_clusters=(distortions.index(max(distortions))+3)).fit(dataframe[['x', 'y']])
+                dataframe['cluster'] = kmeans.labels_
+
+            #drop dimensions unnecessary for return object
             dataframe = dataframe.drop(['keywordsBin', 'keywordsSim', 'lon', 'lat'], axis=1, errors='ignore')
 
             matrixdf = pd.DataFrame(response[i]['similarityMatrix'])
+            
+            # add similarity score to root search
+            for index, row in dataframe.iterrows():
+                matrixdf = matrixdf.append({'left': 'rootSearch', 'right': row['id'], 'score': row['totalScore']}, ignore_index=True)
+            
             # remove items where left & right have same id
             matrixdf = matrixdf[matrixdf['left'] != matrixdf['right']]
             # remove duplicates
@@ -255,6 +289,13 @@ class SimSearchManager:
     def _compare_binary_keywords(self, binKeyword):
         idx = 0
         res = 0
+
+        if len(binKeyword) != len(self.__rootKeywordsBin):
+            print("length mismatch between binary vectors!", flush=True)
+            print(f"{self.__rootKeywordsBin} rootSearch", flush=True)
+            print(f"{binKeyword} compared vector", flush=True)
+            return 0
+
         for bit in binKeyword:
             if bit == self.__rootKeywordsBin[idx]:
                 if bit == 1:

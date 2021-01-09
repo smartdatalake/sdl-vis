@@ -1,5 +1,5 @@
 import { Reducer } from 'redux';
-import { TSeriesParametersState, TSeriesParametersActionTypes } from './types';
+import { TSeriesParametersActionTypes, TSeriesParametersState } from './types';
 import produce from 'immer';
 
 const initialState: TSeriesParametersState = {
