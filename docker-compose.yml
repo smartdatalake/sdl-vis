@@ -10,7 +10,7 @@ services:
   #######################
   visual-explorer:
     container_name: sdl_visual-explorer
-    image: node:15-slim
+    image: node:15.5.1-buster
     ports:
       - "3000:3000"
     volumes:
