@@ -95,3 +95,17 @@ class GCoreManager:
         r = requests.post(url=self._service_url+"gcore/construct-neighbor",json=nodeParam)
         graphNeighbor = nx.readwrite.json_graph.node_link_graph(r.content)
         return graphNeighbor
+
+    def startVisualization(self, param):
+        print(param)
+        r = requests.post(url=self._service_url+"graphvis/initialvis", json=param)
+        print(r.content)
+        return r.content#jsonify(data=r.content)
+        #initialGraph = nx.readwrite.json_graph.node_link_graph(r.content)
+        #return initialGraph
+
+    def nextLevelGraph(self, param):
+        print(param)
+        r = requests.post(url=self._service_url+"graphvis/nextlevel", json=param)
+        print(r.content)
+        return r.content#jsonify(data=r.content)

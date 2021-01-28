@@ -1,0 +1,7 @@
+{
+        "nodeLabel": "ProductAmazon",
+        "id": "1",
+        "edgeLabel": "",
+        "graphName": "Amazon",
+        "limit": -1
+    }

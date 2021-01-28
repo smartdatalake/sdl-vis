@@ -150,6 +150,18 @@ def make_flask_app() -> Flask:
         args = request.json
         return gcore_manager.getNeighborsGraph(args)
 
+    ###############graph visualization#############
+
+    @app.route("/graphvis/initialvis", methods=['POST'])
+    def graph_initialvis():
+        args = request.json
+        return gcore_manager.startVisualization(args)
+
+    @app.route("/graphvis/nextlevel", methods=['POST'])
+    def graph_nextlevel():
+        args = request.json
+        return gcore_manager.nextLevelGraph(args)
+
     ##############################
 
     # Renamed from /tables to /schema to avoid confusion

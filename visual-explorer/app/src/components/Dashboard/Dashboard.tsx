@@ -9,6 +9,7 @@ import ProfilingTab from 'components/Dashboard/ProfilingTab';
 import VPlotsTab from 'components/Dashboard/vPlotsTab';
 import TimeSeriesTab from 'components/Dashboard/TimeSeriesTab';
 import ShinerTab from "components/Dashboard/ShinerTab";
+import HierarchicalGraphTestTab from "components/Dashboard/HierarchicalGraphTestTab";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface IDashboardProps {
@@ -39,6 +40,9 @@ const Dashboard = (props: IDashboardProps) => {
             </Tab>
             <Tab eventKey="er-graph" title="sHINER">
                 <ShinerTab store={props.store} />
+            </Tab>
+            <Tab eventKey="htest-graph" title="H-Test">
+                <HierarchicalGraphTestTab store={props.store} />
             </Tab>
             <Tab eventKey="time-series" title="Time Series">
                 <TimeSeriesTab store={props.store} />

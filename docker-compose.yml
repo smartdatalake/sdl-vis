@@ -3,6 +3,7 @@ version: '3.7'
 networks:
   sdl_net:
    name: sdl_net
+   external: true
 
 services:
   #######################
@@ -20,8 +21,9 @@ services:
     command: ["sh", "-c", "npm install && npm rebuild node-sass && npm run-script start"]
     depends_on:
       - visual-analytics-engine
-    networks:
-      - sdl_net
+    network_mode: host
+    #networks:
+    #  - sdl_net
 
   ###############################
   # SDL Visual Analytics Engine #
@@ -33,7 +35,8 @@ services:
       context: ./visual-analytics-engine/
       dockerfile: ./Dockerfile
     ports:
-      - "3001:8080"
+    - "3001:8080"
+    # - "3001:3001"
     volumes:
       - ./visual-analytics-engine/app:/usr/src/app
       - ./visual-analytics-engine/data/input:/data/input
@@ -44,11 +47,13 @@ services:
       - ./config/qal.env
       - ./config/gcore.env
     working_dir: /usr/src/app
+    #command: ["python", "app.py", "--port", "3001", "--dev"]
     command: ["python", "app.py", "--port", "8080", "--dev"]
     depends_on:
       - redis
-    networks:
-      - sdl_net
+    network_mode: host
+    #networks:
+    #  - sdl_net
 
   #########
   # Redis #
@@ -60,8 +65,9 @@ services:
     hostname: redis
     volumes:
       - redis-data:/data
-    networks:
-      - sdl_net
+    network_mode: host
+    #networks:
+    #  - sdl_net
 
   ###############
   # JUPYTER LAB #
@@ -80,8 +86,9 @@ services:
       - ./config/proteus.env
     working_dir: /home/jovyan
     command: ["sh", "-c", "cd /home/jovyan/notebooks && jupyter-lab --port=3002"]
-    networks:
-      - sdl_net
+    network_mode: host
+    #networks:
+    #  - sdl_net
 
   ###########
   # V-Plots #
@@ -95,8 +102,9 @@ services:
       - ./v-plots/app:/usr/src/app
     working_dir: /usr/src/app
     command: ["sh", "-c", "npm install && npx bower --allow-root install && npx grunt serve"]
-    networks:
-      - sdl_net
+    network_mode: host
+    #networks:
+    # - sdl_net
 
   ####################
   # Postgres Test DB #
@@ -111,8 +119,9 @@ services:
       - ./config/postgres.env
     ports:
       - "3004:5432"
-    networks:
-      - sdl_net
+    network_mode: host
+    #networks:
+    #  - sdl_net
 
 
 volumes:
