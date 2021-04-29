@@ -1,11 +1,61 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Visual Explorer",
+  "name": "SmartDataLake Visal Explorer",
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "icons/favicon-16.png",
+      "type": "image/png",
+      "sizes": "16x16"
+    },
+    {
+      "src": "icons/favicon-24.png",
+      "type": "image/png",
+      "sizes": "24x24"
+    },
+    {
+      "src": "icons/favicon-32.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "icons/favicon-64.png",
+      "type": "image/png",
+      "sizes": "64x64"
+    },
+    {
+      "src": "icons/favicon-128.png",
+      "type": "image/png",
+      "sizes": "128x128"
+    },
+    {
+      "src": "icons/favicon-152.png",
+      "type": "image/png",
+      "sizes": "152x152"
+    },
+    {
+      "src": "icons/favicon-167.png",
+      "type": "image/png",
+      "sizes": "167x167"
+    },
+    {
+      "src": "icons/favicon-180.png",
+      "type": "image/png",
+      "sizes": "180x180"
+    },
+    {
+      "src": "icons/favicon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/favicon-196.png",
+      "type": "image/png",
+      "sizes": "196x196"
     }
   ],
   "start_url": ".",

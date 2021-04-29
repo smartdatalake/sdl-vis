@@ -1,0 +1,32 @@
+.content-svg {
+  display: block;
+  position: absolute;
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  align-content: stretch;
+  flex-grow: 1;
+}
+
+.nav.nav-tabs {
+  flex-grow: 1;
+}
+
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.tab-content {
+  flex-grow: 100;
+}
+
+.tab-pane {
+  height: 100%;
+}

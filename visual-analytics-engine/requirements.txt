@@ -11,6 +11,7 @@ umap-learn
 sklearn
 pandas
 requests
+aiohttp
 
 # To connect to Proteus/RAW
 phoenixdb

@@ -8,9 +8,7 @@ interface NodeDatum extends SimulationNodeDatum {
     linkage: [number, number][];
 }
 
-export default interface CustomHierarchyNode
-    extends SimulationNodeDatum,
-        HierarchyNode<NodeDatum> {
+export default interface CustomHierarchyNode extends SimulationNodeDatum, HierarchyNode<NodeDatum> {
     value: number;
     color: string;
     radius: number;

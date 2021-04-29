@@ -5,6 +5,7 @@ import networkx as nx
 import numpy as np
 import scipy.cluster
 import scipy.spatial
+
 from tools import fancy_dendrogram, scipy_tree_to_dict
 
 

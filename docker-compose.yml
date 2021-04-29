@@ -4,6 +4,12 @@ networks:
   sdl_net:
    name: sdl_net
 
+volumes:
+  vae-data:
+    external: false
+  redis-data:
+    external: false
+
 services:
   #######################
   # SDL Visual Explorer #
@@ -41,6 +47,11 @@ services:
       - ./config/postgres.env
       - ./config/proteus.env
       - ./config/qal.env
+      - ./config/gcore.env
+      - ./config/simsearch.env
+      - ./config/timeseries.env
+    environment:
+      - PYTHONUNBUFFERED=1
     working_dir: /usr/src/app
     command: ["python", "app.py", "--port", "8080", "--dev"]
     depends_on:
@@ -95,7 +106,7 @@ services:
     command: ["sh", "-c", "npm install && npx bower --allow-root install && npx grunt serve"]
     networks:
       - sdl_net
-  
+
   ####################
   # Postgres Test DB #
   ####################
@@ -113,8 +124,3 @@ services:
       - sdl_net
 
 
-volumes:
-  vae-data:
-    external: false
-  redis-data:
-    external: false

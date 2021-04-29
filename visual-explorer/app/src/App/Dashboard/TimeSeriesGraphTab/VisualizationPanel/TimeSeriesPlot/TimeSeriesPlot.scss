@@ -1,0 +1,11 @@
+.ts-tick {
+  & tspan {
+    fill: white;
+  }
+}
+
+.ts-axis {
+ & line {
+   stroke: white;
+ }
+}

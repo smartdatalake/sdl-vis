@@ -3,10 +3,9 @@
 # https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/ #
 ###############################################################################################
 
-from scipy.cluster.hierarchy import dendrogram, linkage
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
+from scipy.cluster.hierarchy import dendrogram
 
 
 def fancy_dendrogram(*args, **kwargs):

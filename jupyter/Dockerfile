@@ -1,4 +1,4 @@
-FROM jupyter/scipy-notebook:latest
+FROM jupyter/scipy-notebook:332db3db9ebb
 
 #######################
 # Install OS Packages #
