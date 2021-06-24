@@ -1,8 +1,10 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import SettingsPanel from 'App/Dashboard/HierarchicalGraphTab/SettingsPanel/SettingsPanel';
-import VisualizationPanel from 'App/Dashboard/HierarchicalGraphTab/VisualizationPanel/VisualizationPanel';
 import { GraphSettings } from 'types/GCoreHierachicalGraph/GraphSettings';
+import { DataArray } from 'types/DataArray';
+import BackendQueryEngine from 'backend/BackendQueryEngine';
+import HierachicalGraphVisSVG from 'App/Dashboard/HierarchicalGraphTab/VisualizationPanel/HierachicalGraphVisSVG';
 
 const MainViewContainer = styled.div`
     background-color: #eee;
@@ -24,12 +26,21 @@ interface Props {}
 
 const MainView: React.FunctionComponent<Props> = (props: Props) => {
     const [graphSettings, setGraphSettings] = React.useState<GraphSettings>();
+    const [graphData, setGraphData] = React.useState<DataArray>();
+
+    React.useEffect(() => {
+        if (graphSettings !== undefined) {
+            BackendQueryEngine.gcoreGraphvisInit(graphSettings).then((graphDataResponse) => {
+                setGraphData(graphDataResponse);
+            });
+        }
+    }, [graphSettings]);
 
     return (
         <MainViewContainer>
             <HorizontalContainer>
                 <SettingsPanel applySettings={setGraphSettings} />
-                {graphSettings && <VisualizationPanel graphSettings={graphSettings} />}
+                {graphData && <HierachicalGraphVisSVG graphData={graphData} />}
             </HorizontalContainer>
         </MainViewContainer>
     );

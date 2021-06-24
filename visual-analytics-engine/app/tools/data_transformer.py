@@ -6,11 +6,11 @@ def transform(df, transformation_spec):
     for ts in transformation_spec:
         if ts["type"] == "bin":
             df = binning(df, ts["bins"], ts["field"])
-        if ts["type"] == "aggregate":
+        elif ts["type"] == "aggregate":
             df = aggregation(df, ts["op"], ts["field"], ts["as"])
-        if ts["type"] == "filter":
+        elif ts["type"] == "filter":
             df = filtering(df, ts["query"])
-        if ts["type"] == "sample":
+        elif ts["type"] == "sample":
             df = sampling(df, ts["count"])
 
     return df

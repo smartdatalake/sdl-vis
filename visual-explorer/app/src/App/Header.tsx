@@ -26,7 +26,7 @@ const Header = () => {
                     <b>SDL</b> Visual Explorer
                 </Navbar.Brand>
                 <Nav className="mr-auto">
-                    <Redirect exact from="/" to="/simsearch" />
+                    <Redirect exact from="/" to="/hierarchical-graph" />
                     <LinkContainer to="/data-profiling" activeStyle={{ color: '--var(light)' }}>
                         <Nav.Link>Data Profiling</Nav.Link>
                     </LinkContainer>
@@ -36,12 +36,12 @@ const Header = () => {
                     <LinkContainer to="/simsearch" activeStyle={{ color: '--var(light)' }}>
                         <Nav.Link>SimSearch</Nav.Link>
                     </LinkContainer>
-                    {/*<LinkContainer to="/hierarchical-graph" activeStyle={{ color: '--var(light)' }}>*/}
-                    {/*    <Nav.Link>Hierarchical Graph</Nav.Link>*/}
-                    {/*</LinkContainer>*/}
-                    {/*<LinkContainer to="/time-series-graph" activeStyle={{ color: '--var(light)' }}>*/}
-                    {/*    <Nav.Link>Time Series Graph</Nav.Link>*/}
-                    {/*</LinkContainer>*/}
+                    <LinkContainer to="/hierarchical-graph" activeStyle={{ color: '--var(light)' }}>
+                        <Nav.Link>Hierarchical Graph</Nav.Link>
+                    </LinkContainer>
+                    <LinkContainer to="/time-series-graph" activeStyle={{ color: '--var(light)' }}>
+                        <Nav.Link>Time Series Graph</Nav.Link>
+                    </LinkContainer>
                 </Nav>
                 <Nav className="mr-sm-2">
                     <Nav.Link href="/imprint">Imprint</Nav.Link>

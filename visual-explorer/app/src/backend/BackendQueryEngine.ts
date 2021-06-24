@@ -1,6 +1,7 @@
 import {
     catalogSearchResponseDecoder,
     correlationResponseDecoder,
+    dataArrayDecoder,
     gCoreGraphCatalogDecoder,
 } from 'backend/json-decoders';
 import { VISUAL_ANALYTICS_ENGINE } from 'backend-urls';
@@ -9,6 +10,7 @@ import { GraphSettings } from 'types/GCoreHierachicalGraph/GraphSettings';
 import { TimeSeriesGraphSettings } from 'types/TimeSeriesGraph/TimeSeriesGraphSettings';
 import { CorrelationResponse } from 'types/TimeSeriesGraph/CorrelationResponse';
 import { TimeSeriesCatalog } from 'types/TimeSeriesGraph/TimeSeriesCatalog';
+import { DataArray } from 'types/DataArray';
 
 enum ResponseType {
     JSON,
@@ -63,13 +65,13 @@ class BackendQueryEngine {
         return gCoreGraphCatalogDecoder.decodeToPromise(jsonResponse);
     }
 
-    public static async gcoreGraphvisInit(graphSettings: GraphSettings): Promise<null> {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public static async gcoreGraphvisInit(graphSettings: GraphSettings): Promise<DataArray> {
         const jsonResponse: unknown = await BackendQueryEngine.queryBackend(
             `gcore/graphvis/init`,
             (graphSettings as unknown) as JSONType
         );
-        return new Promise<null>(() => null);
+
+        return dataArrayDecoder.decodeToPromise(jsonResponse);
     }
 }
 

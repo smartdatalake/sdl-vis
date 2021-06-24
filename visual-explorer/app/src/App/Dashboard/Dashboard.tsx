@@ -5,6 +5,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import ProfilingTab from 'App/Dashboard/ProfilingTab';
 import VPlotsTab from 'App/Dashboard/vPlotsTab';
 import { Route } from 'react-router-dom';
+import HierarchicalGraphTab from 'App/Dashboard/HierarchicalGraphTab';
+import TimeSeriesGraphTab from './TimeSeriesGraphTab';
 
 interface IDashboardProps {}
 
@@ -20,12 +22,12 @@ const Dashboard = (props: IDashboardProps) => {
             <Route exact path={'/simsearch'}>
                 <SimSearchProjectionTab />
             </Route>
-            {/*<Route exact path={'/hierarchical-graph'}>*/}
-            {/*    <HierarchicalGraphTab />*/}
-            {/*</Route>*/}
-            {/*<Route exact path={'/time-series-graph'}>*/}
-            {/*    <TimeSeriesGraphTab />*/}
-            {/*</Route>*/}
+            <Route exact path={'/hierarchical-graph'}>
+                <HierarchicalGraphTab />
+            </Route>
+            <Route exact path={'/time-series-graph'}>
+                <TimeSeriesGraphTab />
+            </Route>
         </div>
     );
 };

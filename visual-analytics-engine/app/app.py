@@ -111,11 +111,9 @@ def make_flask_app() -> Flask:
     def gcore_graphvis_init():
         args = request.json
 
-        print(args)
+        records = gcore_manager.hierarchical_graph_init(args)
 
-        # result = gcore_manager.hierarchical_graph_init(args)
-
-        return {}
+        return records
 
     # Renamed from /tables to /schema to avoid confusion
     @app.route('/schema', methods=['POST'])

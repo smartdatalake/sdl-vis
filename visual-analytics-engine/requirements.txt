@@ -6,6 +6,7 @@ gevent
 
 scipy
 numpy
+nptyping
 umap-learn
 
 sklearn

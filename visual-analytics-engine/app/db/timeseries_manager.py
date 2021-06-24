@@ -1,8 +1,8 @@
 import hashlib
 import json
 import sys
-from datetime import datetime
-from typing import List, Optional, Tuple
+from datetime import datetime, timedelta
+from typing import List, Optional, Tuple, Union, Dict
 
 import numpy as np
 
@@ -27,6 +27,12 @@ class CorrelateParameters(TypedDict):
     api_key: Optional[str]
 
 
+class TSCatalogEntry(TypedDict):
+    numDatapoints: int
+    startDate: str
+    endDate: str
+
+
 def correlate_make_cache_key(*args, **_):
     args_str = json.dumps(args[1], sort_keys=True)
     args_hash_str = str(hashlib.sha256(args_str.encode("utf-8")).hexdigest())
@@ -38,7 +44,7 @@ class TimeSeriesManager:
         self.__endpoint = endpoint
         self.__api_key = api_key
 
-        self.__ts_catalog = self._get_available_timeseries()
+        self.__ts_catalog: Dict[str, TSCatalogEntry] = self._get_available_timeseries()
         print(self.__ts_catalog)
 
     def catalog_search(self, filter_str: str, limit: int):
@@ -78,24 +84,20 @@ class TimeSeriesManager:
             #     ...
             # }
 
-            def date_transformer(date_str: str):
-                date = datetime.strptime(date_str, '%m-%d-%Y')
-                return date.isoformat()
-
             result = {}
             for ts_record in content["filename_length_start_end"]:
                 for key, value in ts_record.items():
                     result[key] = {
                         "numDatapoints": value["length"],
-                        "startDate": date_transformer(value["start"]),
-                        "endDate": date_transformer(value["end"])
+                        "startDate": to_iso(value["start"]),
+                        "endDate": to_iso(value["end"])
                     }
 
             return result
 
         return None
 
-    @cache.cached(timeout=604800, make_cache_key=correlate_make_cache_key)
+    # @cache.cached(timeout=604800, make_cache_key=correlate_make_cache_key)
     def correlate(self, correlate_parameters: CorrelateParameters):
         correlate_parameters["api_key"] = self.__api_key
         data = json.dumps(correlate_parameters)
@@ -113,6 +115,8 @@ class TimeSeriesManager:
             mean_abs_correlation = np.nanmean(np.abs(correlations), axis=0, dtype=float)
             mean_abs_correlation_no_nan = np.where(np.isnan(mean_abs_correlation), None, mean_abs_correlation)
 
+            # After getting correlations, also get the raw values in the specified interval
+
             result = {
                 "timeseries": [{"tsName": ts_name, **self.__ts_catalog[ts_name]} for ts_name in
                                correlate_parameters["data"]],
@@ -121,6 +125,55 @@ class TimeSeriesManager:
                 "meanAbsCorrelation": mean_abs_correlation_no_nan.tolist(),
             }
 
+            for ts in result["timeseries"]:
+                ts["rawDatapoints"] = self.raw_datapoints(ts["tsName"], correlate_parameters['start'],
+                                                          correlate_parameters['start'] + correlate_parameters['steps'])
+
             return result
 
         return None
+
+    def raw_datapoints(self, ts_name: str, start: Union[int, str, datetime],
+                       end: Union[int, str, datetime]) -> Optional[List[float]]:
+
+        # Convert an int giving the offset from the TS start to an ISO date string
+        if type(start) == int and type(end) == int:
+            start = (datetime.fromisoformat(self.__ts_catalog[ts_name]["startDate"]) + timedelta(start)).isoformat()
+            end = (datetime.fromisoformat(self.__ts_catalog[ts_name]['startDate']) + timedelta(end)).isoformat()
+        # Convert a datetime object to an ISO date string
+        elif type(start) == datetime and type(end) == datetime:
+            start = start.isoformat()
+            end = end.isoformat()
+        # Otherwise, assume that start and end already are an ISO date string
+        else:
+            pass
+
+        print("start, end", start, end)
+
+        raw_datapoints_parameters = {
+            "api_key": self.__api_key,
+            "path": ts_name,
+            "start": from_iso(start),
+            "end": from_iso(end)
+        }
+
+        print("raw_datapoints_parameters", raw_datapoints_parameters)
+
+        data = json.dumps(raw_datapoints_parameters)
+        r = requests.post(self.__endpoint + "/getData", data=data, headers={'Content-Type': 'application/json'})
+
+        if r.ok:
+            content = json.loads(r.content)
+            return content["data"]
+
+        return None
+
+
+def to_iso(date_str: str):
+    date = datetime.strptime(date_str, '%m-%d-%Y')
+    return date.isoformat()
+
+
+def from_iso(date_str: str):
+    date = datetime.fromisoformat(date_str)
+    return date.strftime("%m-%d-%Y")

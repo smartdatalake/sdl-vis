@@ -37,6 +37,10 @@ services:
     build:
       context: ./visual-analytics-engine/
       dockerfile: ./Dockerfile
+    logging: # Limit log size
+      driver: "json-file"
+      options:
+        max-size: "5m"
     ports:
       - "3001:8080"
     volumes:

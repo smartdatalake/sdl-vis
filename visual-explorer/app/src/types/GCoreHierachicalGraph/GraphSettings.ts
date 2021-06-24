@@ -58,7 +58,7 @@ export function value(graphSettings: GraphSettings, path: string, value?: string
         _.set(graphSettings, path, valueNullable);
     } else {
         const valueNullable = _.get(graphSettings, path);
-        return valueNullable ? valueNullable.toString() : 'null';
+        return valueNullable ? valueNullable : 'null';
     }
 
     return graphSettings;

@@ -4,6 +4,7 @@ import { CorrelationResponse } from 'types/TimeSeriesGraph/CorrelationResponse';
 import { Matrix, matrix, map } from 'mathjs';
 import { $JsonDecoderErrors } from 'ts.data.json/dist/json-decoder';
 import { TimeSeriesEntry, TimeSeriesInformation } from 'types/TimeSeriesGraph/TimeSeriesCatalog';
+import { DataRow, DataValue } from 'types/DataArray';
 
 /* ********
  * Arrays *
@@ -114,4 +115,17 @@ export const correlationResponseDecoder = JsonDecoder.object<CorrelationResponse
         meanAbsCorrelation: matrixDecoder,
     },
     'CorrelationResponse'
+);
+
+/* **************
+ * DataArray.ts *
+ ************** */
+const matrixOrNumberDecoder = JsonDecoder.oneOf<DataValue>(
+    [JsonDecoder.number, numberArrayDecoder, JsonDecoder.string],
+    'DataValue'
+);
+
+export const dataArrayDecoder = JsonDecoder.array<DataRow>(
+    JsonDecoder.dictionary(matrixOrNumberDecoder, 'DataRow'),
+    'DataArray'
 );

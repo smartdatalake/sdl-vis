@@ -22,3 +22,10 @@ export function getNumberFormatter(digits: number) {
         return (num.valueOf() / si[i].value).toFixed(digits).replace(rx, '$1') + si[i].symbol;
     };
 }
+
+export function bounds(array: Array<number>): { min: number; max: number } {
+    return array.reduce(({ min, max }, item) => ({ min: Math.min(item, min), max: Math.max(item, max) }), {
+        min: Infinity,
+        max: -Infinity,
+    });
+}

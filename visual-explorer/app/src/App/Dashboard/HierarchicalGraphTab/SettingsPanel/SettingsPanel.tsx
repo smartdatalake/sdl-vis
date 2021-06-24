@@ -80,7 +80,11 @@ const SettingsPanelContent = ({ graphCatalog, applySettings }: ContentProps) => 
                     v = [...e.target.options].filter((o) => o.selected).map((o) => o.value);
                 }
 
-                value(draftState, e.target.id, v);
+                if (typeof value(draftState, e.target.id) === 'number' && typeof v === 'string') {
+                    value(draftState, e.target.id, parseInt(v));
+                } else {
+                    value(draftState, e.target.id, v);
+                }
             })
         );
     };
@@ -123,7 +127,7 @@ const SettingsPanelContent = ({ graphCatalog, applySettings }: ContentProps) => 
                                         node.property
                                             .filter((a) => a !== 'id')
                                             .map((nodeAttr) => {
-                                                const value = node.label + '$' + nodeAttr;
+                                                const value = nodeAttr;
 
                                                 return (
                                                     <option key={value} value={value}>
