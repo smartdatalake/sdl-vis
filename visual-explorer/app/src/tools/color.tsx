@@ -1,5 +1,8 @@
-import { hsl, interpolateCubehelix, interpolateRainbow, interpolateSinebow, ScaleOrdinal } from 'd3';
 import { scaleLinear, scaleOrdinal } from '@visx/scale';
+import { hsl } from 'd3-color';
+import { interpolateCubehelix } from 'd3-interpolate';
+import { interpolateRainbow, interpolateSinebow } from 'd3-scale-chromatic';
+import { ScaleOrdinal } from 'd3-scale';
 
 export function getColorVariations(baseColor: string, variations = 4): string[] {
     const result: string[] = [];
@@ -44,13 +47,19 @@ function _clamp(value: number, min: number, max: number) {
     return Math.min(Math.max(value, min), max);
 }
 
-export const schemeCustombow: string[] = ['#9F608E', '#517EAE', '#58A7A1', '#5FAB54', '#E8BA17', '#F07E0F', '#D02F31'];
+const generateSchemeInterpolator =
+    (scheme: string[]): ((t: number) => string) =>
+    (t: number) =>
+        scaleLinear<string>()
+            .domain(scheme.map((_, idx) => idx / (scheme.length - 1)))
+            .range(scheme)
+            .interpolate(interpolateCubehelix)(t) ?? '#000';
 
-export const interpolateCustombow: (t: number) => string = (t: number) =>
-    scaleLinear<string>()
-        .domain(schemeCustombow.map((_, idx) => idx / (schemeCustombow.length - 1)))
-        .range(schemeCustombow)
-        .interpolate(interpolateCubehelix)(t) ?? '#000';
+export const schemeCustombow = ['#9F608E', '#517EAE', '#58A7A1', '#5FAB54', '#E8BA17', '#F07E0F', '#D02F31'];
+export const interpolateCustombow = generateSchemeInterpolator(schemeCustombow);
+
+export const schemeRdBkBl = ['#b10000', '#464646', '#0038b1'];
+export const interpolateRdBkBl = generateSchemeInterpolator(schemeRdBkBl);
 
 const SHORTENED_INTERVAL_SCALE = scaleLinear<number>().domain([0, 1]).range([0, 0.9]);
 export const acyclicInterpolateSinebow = (t: number) => interpolateSinebow(SHORTENED_INTERVAL_SCALE(t) ?? 0);

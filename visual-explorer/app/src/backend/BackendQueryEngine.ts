@@ -1,8 +1,10 @@
 import {
     catalogSearchResponseDecoder,
     correlationResponseDecoder,
-    dataArrayDecoder,
     gCoreGraphCatalogDecoder,
+    hierarchicalGraphLevelDecoder,
+    searchColumnArrayDecoder,
+    similarityGraphArrayDecoder,
 } from 'backend/json-decoders';
 import { VISUAL_ANALYTICS_ENGINE } from 'backend-urls';
 import { GCoreGraphCatalog } from 'types/GCoreHierachicalGraph/GCoreGraphCatalog';
@@ -10,7 +12,11 @@ import { GraphSettings } from 'types/GCoreHierachicalGraph/GraphSettings';
 import { TimeSeriesGraphSettings } from 'types/TimeSeriesGraph/TimeSeriesGraphSettings';
 import { CorrelationResponse } from 'types/TimeSeriesGraph/CorrelationResponse';
 import { TimeSeriesCatalog } from 'types/TimeSeriesGraph/TimeSeriesCatalog';
-import { DataArray } from 'types/DataArray';
+import { SearchColumn } from 'types/SimSearch/SearchColumn';
+import { SearchParameters, VaryingSearchParameters } from 'types/SimSearch/SearchParameters';
+import { ProjectionParameters } from 'types/SimSearch/ProjectionParameters';
+import { SimilarityGraph } from 'types/SimSearch/SimilarityGraph';
+import { HierarchicalGraphLevel } from 'types/HierarchicalGraphLevel';
 
 enum ResponseType {
     JSON,
@@ -43,6 +49,22 @@ class BackendQueryEngine {
         });
     }
 
+    public static async simsearchColumns(): Promise<SearchColumn[]> {
+        const jsonResponse: unknown = await BackendQueryEngine.queryBackend(`simsearch/columns`);
+        return searchColumnArrayDecoder.decodeToPromise(jsonResponse);
+    }
+
+    public static async simsearchSearch(
+        searchParameters: SearchParameters | VaryingSearchParameters,
+        projection: ProjectionParameters
+    ): Promise<SimilarityGraph[]> {
+        const jsonResponse: unknown = await BackendQueryEngine.queryBackend(`simsearch`, {
+            attributes: searchParameters,
+            projection,
+        } as unknown as JSONType);
+        return similarityGraphArrayDecoder.decodeToPromise(jsonResponse);
+    }
+
     public static async timeseriesCatalogSearch(filterStr: string, limit = 10): Promise<TimeSeriesCatalog> {
         const payload = {
             filterStr,
@@ -57,6 +79,7 @@ class BackendQueryEngine {
             `timeseries/correlate`,
             payload as JSONType
         );
+
         return correlationResponseDecoder.decodeToPromise(jsonResponse);
     }
 
@@ -65,13 +88,31 @@ class BackendQueryEngine {
         return gCoreGraphCatalogDecoder.decodeToPromise(jsonResponse);
     }
 
-    public static async gcoreGraphvisInit(graphSettings: GraphSettings): Promise<DataArray> {
+    public static async gcoreGraphvisInit(graphSettings: GraphSettings): Promise<HierarchicalGraphLevel> {
         const jsonResponse: unknown = await BackendQueryEngine.queryBackend(
             `gcore/graphvis/init`,
-            (graphSettings as unknown) as JSONType
+            graphSettings as unknown as JSONType
         );
 
-        return dataArrayDecoder.decodeToPromise(jsonResponse);
+        return hierarchicalGraphLevelDecoder.decodeToPromise(jsonResponse);
+    }
+
+    public static async gcoreGraphvisCluster(
+        transactionId: string,
+        level: number,
+        clusterId: number | string,
+        numNeighbors: number,
+        idOfClosestNeighbor: number
+    ): Promise<HierarchicalGraphLevel> {
+        const jsonResponse: unknown = await BackendQueryEngine.queryBackend(`gcore/graphvis/cluster`, {
+            transactionId,
+            level,
+            clusterId,
+            numNeighbors,
+            idOfClosestNeighbor,
+        });
+
+        return hierarchicalGraphLevelDecoder.decodeToPromise(jsonResponse);
     }
 }
 

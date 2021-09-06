@@ -1,10 +1,11 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Button, Card, Form } from 'react-bootstrap';
-import { DEFAULT_GRAPH_SETTINGS, GraphSettings, value } from 'types/GCoreHierachicalGraph/GraphSettings';
+import { constructDefaultGraphSettings, GraphSettings, value } from 'types/GCoreHierachicalGraph/GraphSettings';
 import BackendQueryEngine from 'backend/BackendQueryEngine';
 import { GCoreGraphCatalog } from 'types/GCoreHierachicalGraph/GCoreGraphCatalog';
 import produce from 'immer';
+import _ from 'lodash';
 
 const ScrollContainer = styled.div`
     flex: 0 0 500px;
@@ -68,7 +69,9 @@ type ContentProps = Props & {
 };
 
 const SettingsPanelContent = ({ graphCatalog, applySettings }: ContentProps) => {
-    const [settings, setSettings] = React.useState<GraphSettings>(DEFAULT_GRAPH_SETTINGS);
+    const [settings, setSettings] = React.useState<GraphSettings>(
+        constructDefaultGraphSettings(graphCatalog.hasOwnProperty('Iris') ? 'Iris' : Object.keys(graphCatalog)[0])
+    );
 
     const onChangeHandler = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSettings((prevState) =>
@@ -90,8 +93,10 @@ const SettingsPanelContent = ({ graphCatalog, applySettings }: ContentProps) => 
     };
 
     const onClickHandler = () => {
-        applySettings(settings);
+        applySettings(_.cloneDeep(settings));
     };
+
+    const currentAlgorithm = value(settings, 'algorithmSettings.algorithm');
 
     return (
         <ScrollContainer>
@@ -127,7 +132,7 @@ const SettingsPanelContent = ({ graphCatalog, applySettings }: ContentProps) => 
                                         node.property
                                             .filter((a) => a !== 'id')
                                             .map((nodeAttr) => {
-                                                const value = nodeAttr;
+                                                const value = `${node.label}\$${nodeAttr}`;
 
                                                 return (
                                                     <option key={value} value={value}>
@@ -151,8 +156,9 @@ const SettingsPanelContent = ({ graphCatalog, applySettings }: ContentProps) => 
                                     onChange={onChangeHandler}
                                     defaultValue={value(settings, 'algorithmSettings.algorithm')}
                                 >
-                                    <option value="kmeans">k-Means</option>
-                                    <option value="single">Single</option>
+                                    <option value="kmeansf">k-Means</option>
+                                    <option value="kmeans">k-Means (Top-Down)</option>
+                                    <option value="single">Single (Top-Down)</option>
                                 </Form.Control>
                             </Form.Group>
                             <Form.Group>
@@ -173,78 +179,18 @@ const SettingsPanelContent = ({ graphCatalog, applySettings }: ContentProps) => 
                     <SettingsCard>
                         <SettingsCardHeader>Algorithm Parameters</SettingsCardHeader>
                         <SettingsCardBody>
-                            {value(settings, 'algorithmSettings.algorithm') === 'kmeans' && (
-                                <>
-                                    <Form.Group>
-                                        <Form.Label>k</Form.Label>
-                                        <Form.Control
-                                            id={'algorithmSettings.algorithmParamsKMeans.k'}
-                                            onChange={onChangeHandler}
-                                            defaultValue={value(settings, 'algorithmSettings.algorithmParamsKMeans.k')}
-                                        />
-                                    </Form.Group>
-                                    <Form.Group>
-                                        <Form.Label># of Representatives</Form.Label>
-                                        <Form.Control
-                                            id={'algorithmSettings.algorithmParamsKMeans.reps'}
-                                            onChange={onChangeHandler}
-                                            defaultValue={value(
-                                                settings,
-                                                'algorithmSettings.algorithmParamsKMeans.reps'
-                                            )}
-                                        />
-                                    </Form.Group>
-                                    <Form.Group>
-                                        <Form.Label>Algorithm for Representatives</Form.Label>
-                                        <Form.Control
-                                            id={'algorithmSettings.algorithmParamsKMeans.reps'}
-                                            as="select"
-                                            onChange={onChangeHandler}
-                                            defaultValue={value(
-                                                settings,
-                                                'algorithmSettings.algorithmParamsKMeans.reps'
-                                            )}
-                                        >
-                                            <option value="topk">Top-k</option>
-                                            <option value="revtopk">Reverse Top-k</option>
-                                        </Form.Control>
-                                    </Form.Group>
-                                </>
-                            )}
-                            {value(settings, 'algorithmSettings.algorithm') === 'single' && (
-                                <>
-                                    <Form.Group>
-                                        <Form.Label>k</Form.Label>
-                                        <Form.Control
-                                            id={'algorithmSettings.algorithmParamsSingle.k'}
-                                            onChange={onChangeHandler}
-                                            defaultValue={value(settings, 'algorithmSettings.algorithmParamsSingle.k')}
-                                        />
-                                    </Form.Group>
-                                    <Form.Group>
-                                        <Form.Label># of Representatives</Form.Label>
-                                        <Form.Control
-                                            id={'algorithmSettings.algorithmParamsSingle.k'}
-                                            onChange={onChangeHandler}
-                                            defaultValue={value(
-                                                settings,
-                                                'algorithmSettings.algorithmParamsSingle.reps'
-                                            )}
-                                        />
-                                    </Form.Group>
-                                    <Form.Group>
-                                        <Form.Label># of Partitions</Form.Label>
-                                        <Form.Control
-                                            id={'algorithmSettings.algorithmParamsSingle.splits'}
-                                            onChange={onChangeHandler}
-                                            defaultValue={value(
-                                                settings,
-                                                'algorithmSettings.algorithmParamsSingle.splits'
-                                            )}
-                                        />
-                                    </Form.Group>
-                                </>
-                            )}
+                            {Object.entries(
+                                value(settings, `algorithmSettings.algorithmParams.${currentAlgorithm}`)
+                            ).map(([paramName, paramValue]) => (
+                                <Form.Group key={`${currentAlgorithm}/${paramName}`}>
+                                    <Form.Label>{paramName}</Form.Label>
+                                    <Form.Control
+                                        id={`algorithmSettings.algorithmParams.${currentAlgorithm}.${paramName}`}
+                                        onChange={onChangeHandler}
+                                        defaultValue={paramValue as string | number}
+                                    />
+                                </Form.Group>
+                            ))}
                         </SettingsCardBody>
                     </SettingsCard>
                     <Button variant="primary" onClick={onClickHandler}>

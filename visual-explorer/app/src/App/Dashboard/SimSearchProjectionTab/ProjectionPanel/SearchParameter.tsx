@@ -5,8 +5,8 @@ import React, { FormEvent, useContext, useState } from 'react';
 import { Badge, Form } from 'react-bootstrap';
 import styled from 'styled-components';
 import SimilaritySearchContext from '../Context';
-import { SearchParameterValue } from '../SearchParameters';
 import { FaWindowClose } from 'react-icons/fa';
+import { SearchParameterValue } from 'types/SimSearch/SearchParameters';
 
 const EqualSign = styled.span`
     align-items: center;
@@ -71,7 +71,8 @@ const SearchParameter = ({
     searchParameter: SearchParameterValue;
 }) => {
     const [isHovered, setIsHovered] = useState<boolean>(false);
-    const { searchParameters, setAttributeToPreview, setSearchParameters } = useContext(SimilaritySearchContext);
+    const { searchParameters, setAttributeToPreview, setNewQueryResults, setSearchParameters } =
+        useContext(SimilaritySearchContext);
 
     const generateMarks = () => {
         const marks: { [n: number]: string } = {};
@@ -88,6 +89,7 @@ const SearchParameter = ({
 
     const onValueChanged = (event: FormEvent) => {
         searchParameter.value = (event.target as HTMLInputElement).value;
+
         if (searchParameters) {
             setSearchParameters({
                 ...(searchParameters ?? {}),
@@ -100,6 +102,7 @@ const SearchParameter = ({
         searchParameter.weights = [weight];
 
         if (searchParameters) {
+            setNewQueryResults(true);
             setSearchParameters({
                 ...searchParameters,
                 [parameterName]: searchParameter,

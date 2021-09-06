@@ -1,8 +1,10 @@
-import { extent, ScaleLinear, scaleLog } from 'd3';
 import React, { useContext } from 'react';
 import { Transition } from 'react-transition-group';
 import Context from '../Context';
-import { duration, Node, stroke, WeightedEdge } from './ProjectionSVG';
+import { duration, stroke } from './ProjectionSVG';
+import { ScaleLinear, scaleLog } from 'd3-scale';
+import { extent } from 'd3-array';
+import { SimilarityGraphEdge, SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
 
 const strokeOpacityScalingFactor = 1 / 4;
 const thinEdge = 0.5;
@@ -22,8 +24,8 @@ const Edges = ({
     xScale,
     yScale,
 }: {
-    nodes: Node[];
-    weightedEdges: WeightedEdge[];
+    nodes: SimilarityGraphNode[];
+    weightedEdges: SimilarityGraphEdge[];
     xScale: ScaleLinear<number, number>;
     yScale: ScaleLinear<number, number>;
 }) => {

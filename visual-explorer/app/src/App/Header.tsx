@@ -26,7 +26,7 @@ const Header = () => {
                     <b>SDL</b> Visual Explorer
                 </Navbar.Brand>
                 <Nav className="mr-auto">
-                    <Redirect exact from="/" to="/hierarchical-graph" />
+                    <Redirect exact from="/" to="/time-series-graph" />
                     <LinkContainer to="/data-profiling" activeStyle={{ color: '--var(light)' }}>
                         <Nav.Link>Data Profiling</Nav.Link>
                     </LinkContainer>

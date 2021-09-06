@@ -1,10 +1,12 @@
-import { ScaleLinear } from 'd3';
+import { ScaleLinear } from 'd3-scale';
+
 import React, { useContext, useState } from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { Transition } from 'react-transition-group';
 import styled from 'styled-components';
-import { duration, Node, opaque, rootCircleRadius } from './ProjectionSVG';
+import { duration, opaque, rootCircleRadius } from './ProjectionSVG';
 import SimilaritySearchContext from '../Context';
+import { SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
 
 const smallRadius = 2;
 const transparent = 0.3;
@@ -24,7 +26,7 @@ const CircleWithTooltip = ({
     yScale,
 }: {
     attributeToPreview: string | undefined;
-    node: Node;
+    node: SimilarityGraphNode;
     xScale: ScaleLinear<number, number>;
     yScale: ScaleLinear<number, number>;
 }) => {

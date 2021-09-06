@@ -3,7 +3,7 @@ import ParentSize from '@visx/responsive/lib/components/ParentSize';
 import { Zoom } from '@visx/zoom';
 import styled from 'styled-components';
 import HierachicalGraphVis from 'App/Dashboard/HierarchicalGraphTab/VisualizationPanel/HierachicalGraphVis';
-import { DataArray } from 'types/DataArray';
+import { HierarchicalGraphLevel } from 'types/HierarchicalGraphLevel';
 
 const ScrollContainer = styled.div`
     flex-grow: 1;
@@ -30,8 +30,8 @@ const StyledSVG = styled.svg`
 `;
 
 const INITIAL_TRANSFORM = {
-    scaleX: 1,
-    scaleY: 1,
+    scaleX: 2,
+    scaleY: 2,
     translateX: 100,
     translateY: 100,
     skewX: 0,
@@ -46,7 +46,7 @@ const SCALE_PARAMS = {
 };
 
 interface Props {
-    graphData: DataArray;
+    graphData: HierarchicalGraphLevel;
 }
 
 const HierachicalGraphVisSVG = ({ graphData }: Props) => {
@@ -75,8 +75,8 @@ const HierachicalGraphVisSVG = ({ graphData }: Props) => {
                                     >
                                         <g transform={zoom.toString()}>
                                             <HierachicalGraphVis
-                                                width={parentSize.width}
-                                                height={parentSize.height}
+                                                width={parentSize.width / 2 - 100}
+                                                height={parentSize.height / 2 - 100}
                                                 graphData={graphData}
                                             />
                                         </g>

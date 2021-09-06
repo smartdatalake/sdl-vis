@@ -1,39 +1,18 @@
 import SVGPanZoom from 'App/SVGPanZoom';
-import { scaleLinear } from 'd3';
 import React, { useContext } from 'react';
 import { Spinner } from 'react-bootstrap';
 import styled from 'styled-components';
-import useSimilaritySearch, {
-    SimilarityGraph,
-    SimilaritySearchStates,
-    VaryingSimilarityGraphs,
-} from '../useSimilaritySearch';
+import useSimilaritySearch, { SimilaritySearchStates, VaryingSimilarityGraphs } from '../useSimilaritySearch';
 import SimilaritySearchContext from '../Context';
 import SimilaritySearch from './SimilaritySearch';
 import ProjectionTable from './ProjectionTable';
 import { computeColor } from 'App/Dashboard/SimSearchProjectionTab/Projection/computeColor';
+import { scaleLinear } from 'd3-scale';
+import { SimilarityGraph, SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
 
-export interface Node {
-    x: number;
-    y: number;
-    id: string;
-    totalScore: number;
-    cluster: number;
-    size: number;
-    fillColor: string;
-    rank: string | number;
-    [key: string]: string | number | string[];
-}
-
-export interface ColoredNode extends Node {
+export interface ColoredNode extends SimilarityGraphNode {
     attribute: string;
     strokeColor: string;
-}
-
-export interface WeightedEdge {
-    left: string;
-    right: string;
-    score: number;
 }
 
 export const duration = 300;

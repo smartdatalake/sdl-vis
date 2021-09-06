@@ -1,14 +1,15 @@
 import React, { ReactNode, useState } from 'react';
 import Context from './Context';
-import { ProjectionAlgorithm, ProjectionParameters } from './ProjectionParameters';
-import { SearchParameters, PossibleSearchParameter } from './SearchParameters';
-import { Node } from './Projection/ProjectionSVG';
+import { ProjectionAlgorithm, ProjectionParameters } from 'types/SimSearch/ProjectionParameters';
+import { SearchParameters } from 'types/SimSearch/SearchParameters';
+import { SearchColumn } from 'types/SimSearch/SearchColumn';
+import { SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
 
 export const defaultProjectionParameters: ProjectionParameters = {
-    algorithm: ProjectionAlgorithm.MDS,
+    type: ProjectionAlgorithm.MDS,
     k: 15,
     epsilon: 0.001,
-    maximumIterations: 300,
+    maxIter: 300,
 };
 
 /* export const defaultSearchParameters: SearchParameters = {
@@ -39,8 +40,8 @@ const Provider = ({ children }: { children: ReactNode }) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [projectionParameters, setProjectionParameters] = useState<ProjectionParameters>(defaultProjectionParameters);
     const [searchParameters, setSearchParameters] = useState<SearchParameters>();
-    const [highlightedNode, setHighlightedNode] = useState<Node | null>(null);
-    const [possibleParameter, setPossibleParameter] = useState<PossibleSearchParameter[] | null>(null);
+    const [highlightedNode, setHighlightedNode] = useState<SimilarityGraphNode | null>(null);
+    const [possibleParameter, setPossibleParameter] = useState<SearchColumn[] | null>(null);
     const [newQueryResults, setNewQueryResults] = useState<boolean>(false);
 
     return (
@@ -56,7 +57,7 @@ const Provider = ({ children }: { children: ReactNode }) => {
                 setSearchParameters,
                 highlightedNode,
                 setHighlightedNode,
-                possibleParameter,
+                searchColumns: possibleParameter,
                 setPossibleParameter,
                 newQueryResults,
                 setNewQueryResults,

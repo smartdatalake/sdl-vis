@@ -1,5 +1,4 @@
 import React, { useRef } from 'react';
-import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation, Simulation } from 'd3';
 import { useUpdate } from 'react-use';
 import _ from 'lodash';
 import {
@@ -9,8 +8,7 @@ import {
 } from 'types/TimeSeriesGraph/TimeSeriesCorrelationGraph';
 import LinkElement from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesGraphVis/LinkElement';
 import NodeElement from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesGraphVis/NodeElement';
-
-const NODE_SIZE = 30;
+import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation, Simulation } from 'd3-force';
 
 interface Props {
     correlationGraph: TimeSeriesCorrelationGraph;
@@ -18,6 +16,11 @@ interface Props {
 
 const TimeSeriesGraphVis: React.FunctionComponent<Props> = ({ correlationGraph }: Props) => {
     const simGraphRef = useRef<TimeSeriesCorrelationGraph>();
+
+    // //This block can be used to normalize link force. Seems not to be needed at the moment...
+    // const weights = correlationGraph.links.map((l) => l.weight);
+    // const maxWeight = Math.max(...weights);
+    // const maxWeightDiff = Math.max(...weights.map((w1) => Math.max(...weights.map((w2) => Math.abs(w1 - w2)))));
 
     const updateCb = useUpdate();
 
@@ -32,11 +35,11 @@ const TimeSeriesGraphVis: React.FunctionComponent<Props> = ({ correlationGraph }
             .force('center', forceCenter<TimeSeriesCorrelationGraphNode>(0, 0))
             .force(
                 'collide',
-                forceCollide<TimeSeriesCorrelationGraphNode>((d) => NODE_SIZE)
+                forceCollide<TimeSeriesCorrelationGraphNode>((d) => 30)
             )
             .force(
                 'link',
-                forceLink(simGraph.links).distance((d) => 200 / (d.weight * d.weight))
+                forceLink(simGraph.links).distance((d) => 200 / d.weight)
             )
             .on('tick', function () {
                 updateCb();
@@ -57,7 +60,7 @@ const TimeSeriesGraphVis: React.FunctionComponent<Props> = ({ correlationGraph }
                 <LinkElement key={`${l.source.id}_${l.target.id}`} link={l} />
             ))}
             {simGraphRef.current?.nodes.map((n) => (
-                <NodeElement key={n.id} node={n} size={NODE_SIZE} />
+                <NodeElement key={n.id} node={n} />
             ))}
         </g>
     );

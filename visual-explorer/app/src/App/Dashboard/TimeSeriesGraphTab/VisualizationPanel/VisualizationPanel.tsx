@@ -1,9 +1,17 @@
 import * as React from 'react';
-import TimeSeriesPlotSVG from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesPlotSVG';
-import TimeSeriesGraphVisSVG from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesGraphVisSVG';
+import TimeSeriesPlotSVG from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesPlot/TimeSeriesPlotSVG';
+import TimeSeriesGraphVisSVG from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesGraphVis/TimeSeriesGraphVisSVG';
 import styled from 'styled-components';
-import { appleStock } from '@visx/mock-data';
-import { TimeSeriesCorrelationGraph } from 'types/TimeSeriesGraph/TimeSeriesCorrelationGraph';
+import { constructTSCorrelationGraph } from 'types/TimeSeriesGraph/TimeSeriesCorrelationGraph';
+import { CorrelationResponse } from 'types/TimeSeriesGraph/CorrelationResponse';
+import { LinkingAndBrushingContextProvider } from 'App/hooks/LinkingAndBrushingContextProvider';
+import { scaleLinear, scaleOrdinal } from '@visx/scale';
+import { schemeTableau10 } from 'd3-scale-chromatic';
+import { useMemo, useState } from 'react';
+import { TimeSeriesContextProvider } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesContextProvider';
+import { bounds } from 'tools/helpers';
+import ToggleAbsoluteWeightsSwitch from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/ToggleAbsoluteWeightsSwitch';
+import { interpolateRdBkBl } from 'tools/color';
 
 const VerticalContainer = styled.div`
     display: flex;
@@ -16,52 +24,58 @@ const StyledHr = styled.hr`
     margin: 0;
 `;
 
+const useAbsoluteCorrelationsSwitch = (): [boolean, (toggle: boolean) => void] => {
+    const [useAbsoluteCorrelations, setUseAbsoluteCorrelations] = useState(false);
+
+    const switchHandler = useMemo(
+        () => (toggled: boolean) => {
+            setUseAbsoluteCorrelations(toggled);
+        },
+        []
+    );
+
+    return [useAbsoluteCorrelations, switchHandler];
+};
+
 interface Props {
-    correlationGraph: TimeSeriesCorrelationGraph;
+    correlations: CorrelationResponse;
 }
 
-const VisualizationPanel = ({ correlationGraph }: Props) => {
-    const tsArray = [
-        {
-            id: 'd790c085-8293-4579-81dc-fc9c0323b803',
-            name: 'Apple Stock',
-            timePoints: appleStock.map((v) => ({
-                time: new Date(v.date),
-                payload: {
-                    value: v.close,
-                    unit: 'USD',
-                },
-            })),
-        },
-        {
-            id: '267c1867-939b-4ff5-b310-9dcc3f94e11a',
-            name: 'Test Stock (Inverse Apple)',
-            timePoints: appleStock.map((v) => ({
-                time: new Date(v.date),
-                payload: {
-                    value: v.close * -0.8,
-                    unit: 'USD',
-                },
-            })),
-        },
-        {
-            id: '67dfe646-d13d-41ca-a409-565ddf333a01',
-            name: 'Random Stock',
-            timePoints: appleStock.map((v) => ({
-                time: new Date(v.date),
-                payload: {
-                    value: Math.random() * 300,
-                    unit: 'USD',
-                },
-            })),
-        },
-    ];
+const VisualizationPanel = ({ correlations }: Props) => {
+    const [useAbsoluteCorrelations, switchHandler] = useAbsoluteCorrelationsSwitch();
+
+    const correlationGraph = constructTSCorrelationGraph(correlations, useAbsoluteCorrelations);
+    const tsArray = correlations.timeseries;
+
+    const nodeColorScale = useMemo(
+        () =>
+            scaleOrdinal({
+                domain: tsArray.map((ts) => ts.tsName),
+                range: [...schemeTableau10],
+            }),
+        [tsArray]
+    );
+
+    const linkColorScale = useMemo(() => {
+        const domain = bounds(correlationGraph.links.map((l) => l.weight));
+        const normalize = scaleLinear<number>().domain([domain.min, domain.max]).range([0, 1]);
+        return (t: number) => interpolateRdBkBl(normalize(t));
+    }, [correlationGraph]);
 
     return (
         <VerticalContainer>
-            <TimeSeriesPlotSVG tsArray={tsArray} />
-            <StyledHr />
-            <TimeSeriesGraphVisSVG correlationGraph={correlationGraph} />
+            <LinkingAndBrushingContextProvider>
+                <TimeSeriesContextProvider nodeColorScale={nodeColorScale} linkColorScale={linkColorScale}>
+                    <TimeSeriesPlotSVG tsArray={tsArray} />
+                    <StyledHr />
+                    <div style={{ position: 'relative', height: '100%' }}>
+                        <div style={{ position: 'absolute', top: 20, left: 20 }}>
+                            <ToggleAbsoluteWeightsSwitch onToggleHandler={switchHandler} />
+                        </div>
+                        <TimeSeriesGraphVisSVG correlationGraph={correlationGraph} />
+                    </div>
+                </TimeSeriesContextProvider>
+            </LinkingAndBrushingContextProvider>
         </VerticalContainer>
     );
 };

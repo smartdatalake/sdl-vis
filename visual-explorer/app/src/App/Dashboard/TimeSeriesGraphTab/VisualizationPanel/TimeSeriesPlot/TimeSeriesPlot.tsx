@@ -1,29 +1,36 @@
-import React from 'react';
-import { TimeSeries } from 'types/TimeSeries';
+import React, { useContext } from 'react';
 import { Group } from '@visx/group';
 import { AxisBottom, AxisLeft } from '@visx/axis';
-import { scaleTime, scaleOrdinal } from '@visx/scale';
-import { TimePoint } from 'types/TimePoint';
+import { scaleTime } from '@visx/scale';
 import { Margin } from 'types/Margin';
 import { getNumberFormatter } from 'tools/helpers';
-import { LinePath } from '@visx/shape';
-import { curveBasis } from '@visx/curve';
-import { schemeTableau10 } from 'd3-scale-chromatic';
 import 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesPlot/TimeSeriesPlot.scss';
 import { tsArrayReducer } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesPlot/ts-reducer';
+import { CorrelationTimeSeriesEntry, TimePoint } from 'types/TimeSeriesGraph/CorrelationResponse';
+import PlotLine from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesPlot/StockLine';
+import { Text } from '@visx/text';
+import styled from 'styled-components';
+import { TimeSeriesContext } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesContext';
 
 const DEFAULT_MARGIN: Margin = { top: 10, right: 25, bottom: 35, left: 45 };
 
+const StockLabelText = styled(Text)`
+    dominant-baseline: middle;
+    font-size: 12px;
+`;
+
 interface Props {
-    tsArray: TimeSeries[];
+    tsArray: CorrelationTimeSeriesEntry[];
     width: number;
     height: number;
     margin?: Margin;
 }
 
 const TimeSeriesPlot: React.FunctionComponent<Props> = ({ tsArray, width, height, margin = DEFAULT_MARGIN }: Props) => {
-    const timeAccessor = (tp: TimePoint) => tp.time.valueOf();
-    const valueAccessor = (tp: TimePoint) => tp.payload.value;
+    const { nodeColorScale } = useContext(TimeSeriesContext);
+
+    const timeAccessor = (tp: TimePoint) => tp.date.valueOf();
+    const valueAccessor = (tp: TimePoint) => tp.value;
 
     const xMax = width - margin.left - margin.right;
     const yMax = height - margin.top - margin.bottom;
@@ -37,11 +44,6 @@ const TimeSeriesPlot: React.FunctionComponent<Props> = ({ tsArray, width, height
         range: [yMax, 0],
     });
 
-    const colorScale = scaleOrdinal({
-        domain: tsArray.map((ts) => ts.id),
-        range: [...schemeTableau10],
-    });
-
     return (
         <>
             <Group left={margin.left} top={margin.top}>
@@ -52,6 +54,9 @@ const TimeSeriesPlot: React.FunctionComponent<Props> = ({ tsArray, width, height
                     scale={valueScale}
                     numTicks={5}
                 />
+                <Text x="-70" y="15" transform="rotate(-90)" fill={'white'} fontSize={12}>
+                    Price (USD)
+                </Text>
                 <AxisBottom
                     tickClassName={'ts-tick'}
                     axisClassName={'ts-axis'}
@@ -59,17 +64,28 @@ const TimeSeriesPlot: React.FunctionComponent<Props> = ({ tsArray, width, height
                     scale={timeScale}
                     numTicks={5}
                 />
+                <Text x={xMax} y={yMax - 8} fill={'white'} fontSize={12} style={{ textAnchor: 'end' }}>
+                    Date
+                </Text>
                 {tsArray.map((ts) => {
+                    const lastTp = ts.rawDatapoints.slice(-1)[0];
+
                     return (
-                        <LinePath
-                            key={ts.id}
-                            data={ts.timePoints}
-                            curve={curveBasis}
-                            x={(tp) => timeScale(timeAccessor(tp)) ?? 0}
-                            y={(tp) => valueScale(valueAccessor(tp)) ?? 0}
-                            stroke={colorScale(ts.id) ?? '#000'}
-                            strokeWidth={1}
-                        />
+                        <>
+                            <PlotLine
+                                key={ts.tsName}
+                                ts={ts}
+                                xAcc={(tp: TimePoint) => timeScale(timeAccessor(tp)) ?? 0}
+                                yAcc={(tp: TimePoint) => valueScale(valueAccessor(tp)) ?? 0}
+                            />
+                            <StockLabelText
+                                style={{ fill: nodeColorScale(ts.tsName) }}
+                                x={timeScale(timeAccessor(lastTp)) + 8}
+                                y={valueScale(valueAccessor(lastTp))}
+                            >
+                                {ts.tsName}
+                            </StockLabelText>
+                        </>
                     );
                 })}
             </Group>

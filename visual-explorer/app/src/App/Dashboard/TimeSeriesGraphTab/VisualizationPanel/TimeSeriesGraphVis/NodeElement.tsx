@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
 import { TimeSeriesCorrelationGraphNode } from 'types/TimeSeriesGraph/TimeSeriesCorrelationGraph';
-import { darker, lightest } from 'tools/color';
+import { lightest } from 'tools/color';
 import { Text } from '@visx/text';
 import { useTooltipInPortal } from '@visx/tooltip';
+import { LinkingAndBrushingContext } from 'App/hooks/LinkingAndBrushingContext';
+import { TimeSeriesContext } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesContext';
 
 const TEXT_BOX_PADDING = 5;
 
 interface Props {
     node: TimeSeriesCorrelationGraphNode;
-    size: number;
 }
 
-const NodeElement: React.FunctionComponent<Props> = ({ node, size }: Props) => {
+const NodeElement: React.FunctionComponent<Props> = ({ node }: Props) => {
+    const { useLink, useBrush } = React.useContext(LinkingAndBrushingContext);
+    const { nodeColorScale } = React.useContext(TimeSeriesContext);
+
     const [textRef, setTextRef] = useState<SVGSVGElement | null>(null);
     const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
+
+    const [linked, setLinked] = useState<boolean>(false);
 
     const textBBox = textRef?.getBBox() ?? new DOMRect();
 
@@ -23,6 +29,11 @@ const NodeElement: React.FunctionComponent<Props> = ({ node, size }: Props) => {
         // when tooltip containers are scrolled, this will correctly update the Tooltip position
         scroll: true,
     });
+
+    useBrush<string | undefined>('ts-hovered', () => (hoverPos ? node.name : undefined), [hoverPos]);
+    useLink<string>('ts-hovered', (tsName) => setLinked(tsName === node.name));
+
+    const hovered = hoverPos || linked;
 
     return (
         <g
@@ -36,7 +47,11 @@ const NodeElement: React.FunctionComponent<Props> = ({ node, size }: Props) => {
                 y={textBBox.y - TEXT_BOX_PADDING}
                 width={textBBox.width + 2 * TEXT_BOX_PADDING}
                 height={textBBox.height + 2 * TEXT_BOX_PADDING}
-                style={{ stroke: darker(node.color), fill: lightest(node.color), strokeWidth: 2 }}
+                style={{
+                    stroke: nodeColorScale(node.name),
+                    fill: lightest(nodeColorScale(node.name)),
+                    strokeWidth: hovered ? 4 : 2,
+                }}
             />
             <Text
                 innerRef={(ref) => setTextRef(ref)}

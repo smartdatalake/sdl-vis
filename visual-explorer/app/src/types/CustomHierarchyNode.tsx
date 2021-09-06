@@ -1,4 +1,5 @@
-import { HierarchyNode, SimulationNodeDatum } from 'd3';
+import { SimulationNodeDatum } from 'd3-force';
+import { HierarchyNode } from 'd3-hierarchy';
 
 interface NodeDatum extends SimulationNodeDatum {
     id: number;

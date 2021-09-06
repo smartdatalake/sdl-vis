@@ -1,9 +1,10 @@
-import { ScaleLinear } from 'd3';
 import React, { useContext } from 'react';
 import Context from '../Context';
 import CircleWithTooltip from './CircleWithTooltip';
 import ConnectedCircle from './ConnectedCircle';
-import { ColoredNode, Node } from './ProjectionSVG';
+import { ColoredNode } from './ProjectionSVG';
+import { ScaleLinear } from 'd3-scale';
+import { SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
 
 /**
  * Renders all current nodes with their previews in other states if available.
@@ -17,7 +18,7 @@ const Nodes = ({
     xScale,
     yScale,
 }: {
-    nodesWithPreview: [Node | undefined, ColoredNode[]][];
+    nodesWithPreview: [SimilarityGraphNode | undefined, ColoredNode[]][];
     xScale: ScaleLinear<number, number>;
     yScale: ScaleLinear<number, number>;
 }) => {

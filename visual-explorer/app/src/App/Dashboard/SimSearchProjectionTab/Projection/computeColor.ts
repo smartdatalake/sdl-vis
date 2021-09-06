@@ -1,8 +1,12 @@
 // hsl color of node depending on angle (h) and distance (s) to center of projection
-import { Node } from 'App/Dashboard/SimSearchProjectionTab/Projection/ProjectionSVG';
-import { ScaleLinear } from 'd3';
+import { ScaleLinear } from 'd3-scale';
+import { SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
 
-export const computeColor = (node: Node, xScale: ScaleLinear<number, number>, yScale: ScaleLinear<number, number>) => {
+export const computeColor = (
+    node: SimilarityGraphNode,
+    xScale: ScaleLinear<number, number>,
+    yScale: ScaleLinear<number, number>
+) => {
     const xNorm = (node.x - xScale.domain()[0]) / (xScale.domain()[1] - xScale.domain()[0]);
     const yNorm = (node.y - yScale.domain()[0]) / (yScale.domain()[1] - yScale.domain()[0]);
 

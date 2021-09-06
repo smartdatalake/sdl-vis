@@ -4,11 +4,11 @@ import React, { FormEvent, useContext, useState } from 'react';
 import { Card, Dropdown, Form, Spinner, ToggleButton, ToggleButtonGroup, Button } from 'react-bootstrap';
 import styled from 'styled-components';
 import SimilaritySearchContext from '../Context';
-import { ProjectionAlgorithm, ProjectionParameters } from '../ProjectionParameters';
+import { ProjectionAlgorithm, ProjectionParameters } from 'types/SimSearch/ProjectionParameters';
 import { defaultProjectionParameters } from '../Provider';
-import { SearchParameterValue } from '../SearchParameters';
 import SearchParameter from './SearchParameter';
 import { FaAngleDown, FaAngleUp } from 'react-icons/fa';
+import { SearchParameterValue } from 'types/SimSearch/SearchParameters';
 
 const FloatingCard = styled(Card)`
     left: 15px;
@@ -125,7 +125,7 @@ const ProjectionPanel = () => {
 
         setProjectionParameters({
             ...projectionParameters,
-            algorithm: selectedAlgorithm as ProjectionAlgorithm,
+            type: selectedAlgorithm as ProjectionAlgorithm,
             k,
         });
     };
@@ -138,7 +138,7 @@ const ProjectionPanel = () => {
 
             setProjectionParameters({
                 ...projectionParameters,
-                algorithm,
+                type: algorithm,
                 k: localK,
             });
         }
@@ -155,7 +155,7 @@ const ProjectionPanel = () => {
         }
         setProjectionParameters({
             ...projectionParameters,
-            algorithm,
+            type: algorithm,
             k,
         });
     };
@@ -245,7 +245,7 @@ const ProjectionPanel = () => {
 
                                 setProjectionParameters({
                                     ...projectionParameters,
-                                    algorithm,
+                                    type: algorithm,
                                     k,
                                 });
                             }}
@@ -263,16 +263,16 @@ const MDSProjectionPanel = () => {
     const { projectionParameters, setProjectionParameters } = useContext(SimilaritySearchContext);
 
     const [epsilon, setEpsilon] = useState<number>(projectionParameters?.epsilon ?? 0);
-    const [maximumIterations, setMaximumIterations] = useState<number>(projectionParameters?.maximumIterations ?? 0);
+    const [maximumIterations, setMaximumIterations] = useState<number>(projectionParameters?.maxIter ?? 0);
 
     const onEpsilonChanged = (currentEpsilon: number) => setEpsilon(currentEpsilon);
 
     const onEpsilonSet = (currentEpsilon: number) => {
         setEpsilon(currentEpsilon);
-        setProjectionParameters(({
+        setProjectionParameters({
             ...projectionParameters,
             epsilon: currentEpsilon,
-        } as unknown) as ProjectionParameters);
+        } as unknown as ProjectionParameters);
     };
 
     const onMaximumIterationsChanged = (currentMaximumIterations: number) =>
@@ -280,10 +280,10 @@ const MDSProjectionPanel = () => {
 
     const onMaximumIterationsSet = (currentMaximumIterations: number) => {
         setMaximumIterations(currentMaximumIterations);
-        setProjectionParameters(({
+        setProjectionParameters({
             ...projectionParameters,
             maximumIterations: currentMaximumIterations,
-        } as unknown) as ProjectionParameters);
+        } as unknown as ProjectionParameters);
     };
 
     return (

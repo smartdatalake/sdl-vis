@@ -1,27 +1,5 @@
 import { cloneDeep } from 'lodash';
-
-export interface PossibleSearchParameter {
-    column: string;
-    datatype: string;
-    sampleValue: string | number | string[];
-}
-
-export type SearchParameters = {
-    [key: string]: SearchParameterValue;
-};
-
-export interface SearchParameterValue {
-    active: boolean;
-    value: number | string | string[];
-    weights: number[];
-    datatype: string;
-    sampleValue: string | number | string[];
-}
-
-export type VaryingSearchParameters = {
-    decreased?: SearchParameters;
-    increased?: SearchParameters;
-};
+import { SearchParameters, VaryingSearchParameters } from 'types/SimSearch/SearchParameters';
 
 const parameterWeightDelta = 0.2;
 

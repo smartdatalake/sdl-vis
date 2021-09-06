@@ -32,7 +32,7 @@ module.exports = function(config) {
       'bower_components/angular-aria/angular-aria.js',
       'bower_components/angular-messages/angular-messages.js',
       'bower_components/angular-material/angular-material.js',
-      'bower_components/underscore/underscore.js',
+      'bower_components/underscore/underscore-umd.js',
       'bower_components/d3/d3.js',
       'bower_components/angular-material-expansion-panel/dist/md-expansion-panel.js',
       'bower_components/md-color-menu/md-color-menu.js',

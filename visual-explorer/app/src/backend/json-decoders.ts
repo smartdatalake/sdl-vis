@@ -1,16 +1,34 @@
 import { err, JsonDecoder, ok } from 'ts.data.json';
 import { GCoreGraphLink, GCoreGraphNode, GCoreGraphSchema } from 'types/GCoreHierachicalGraph/GCoreGraphCatalog';
-import { CorrelationResponse } from 'types/TimeSeriesGraph/CorrelationResponse';
-import { Matrix, matrix, map } from 'mathjs';
+import { CorrelationResponse, CorrelationTimeSeriesEntry, TimePoint } from 'types/TimeSeriesGraph/CorrelationResponse';
+import { map, matrix, Matrix } from 'mathjs';
 import { $JsonDecoderErrors } from 'ts.data.json/dist/json-decoder';
-import { TimeSeriesEntry, TimeSeriesInformation } from 'types/TimeSeriesGraph/TimeSeriesCatalog';
+import { TimeSeriesInformation } from 'types/TimeSeriesGraph/TimeSeriesCatalog';
 import { DataRow, DataValue } from 'types/DataArray';
+import { SearchColumn, SearchColumnDataType } from 'types/SimSearch/SearchColumn';
+import { SimilarityGraph, SimilarityGraphEdge, SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
+import { HierarchicalGraphLevel, HierarchicalGraphNode } from 'types/HierarchicalGraphLevel';
+
+/* *****************
+ * number | string *
+ ***************** */
+const numberOrStringDecoder = JsonDecoder.oneOf<string | number>(
+    [JsonDecoder.number, JsonDecoder.string],
+    'number | string'
+);
+
+const numberOrStringDictDecoder = JsonDecoder.dictionary(numberOrStringDecoder, 'NumberOrStringDict');
 
 /* ********
  * Arrays *
  ******** */
 export const numberArrayDecoder = JsonDecoder.array<number>(JsonDecoder.number, 'number[]');
 export const stringArrayDecoder = JsonDecoder.array<string>(JsonDecoder.string, 'string[]');
+
+export const numberOrStringArrayDecoder = JsonDecoder.array<number | string>(
+    numberOrStringDecoder,
+    'Array<number | string>'
+);
 
 /* ******
  * Date *
@@ -64,6 +82,35 @@ export const gCoreGraphCatalogDecoder = JsonDecoder.dictionary<GCoreGraphSchema>
     'GCoreGraphCatalog'
 );
 
+/* ************************
+ * HierarchicalGraphLevel *
+ ************************ */
+const hierarchicalGraphNodeDecoder = JsonDecoder.object<HierarchicalGraphNode>(
+    {
+        label: JsonDecoder.string,
+        cluster: JsonDecoder.number,
+        id: JsonDecoder.number,
+        level: JsonDecoder.number,
+        x: JsonDecoder.number,
+        y: JsonDecoder.number,
+        attributes: numberOrStringDictDecoder,
+    },
+    'HierarchicalGraphNode'
+);
+
+const hierarchicalGraphNodeArrayDecoder = JsonDecoder.array<HierarchicalGraphNode>(
+    hierarchicalGraphNodeDecoder,
+    'HierarchicalGraphNode[]'
+);
+
+export const hierarchicalGraphLevelDecoder = JsonDecoder.object<HierarchicalGraphLevel>(
+    {
+        transactionId: JsonDecoder.string,
+        nodes: hierarchicalGraphNodeArrayDecoder,
+    },
+    'HierarchicalGraphLevel'
+);
+
 /* *************************
  * TimeSeriesCatalogSearch *
  ************************* */
@@ -84,14 +131,23 @@ export const catalogSearchResponseDecoder = JsonDecoder.dictionary<TimeSeriesInf
 /* *****************
  * TimeSeriesEntry *
  ***************** */
-const timeSeriesEntryDecoder = JsonDecoder.combine(
-    timeSeriesInformationDecoder,
-    JsonDecoder.object<Omit<TimeSeriesEntry, keyof TimeSeriesInformation>>(
-        {
-            tsName: JsonDecoder.string,
-        },
-        'TimeSeriesInformation'
-    )
+const timePointDecoder = JsonDecoder.object<TimePoint>(
+    {
+        date: dateDecoder,
+        value: JsonDecoder.number,
+    },
+    'TimePoint'
+);
+
+const correlationTimeSeriesEntryDecoder = JsonDecoder.object<CorrelationTimeSeriesEntry>(
+    {
+        startDate: dateDecoder,
+        endDate: dateDecoder,
+        numDatapoints: JsonDecoder.number,
+        tsName: JsonDecoder.string,
+        rawDatapoints: JsonDecoder.array<TimePoint>(timePointDecoder, 'TimePoint[]'),
+    },
+    'CorrelationTimeSeriesEntry'
 );
 
 /* ***********************
@@ -109,7 +165,10 @@ const matrixDecoder: JsonDecoder.Decoder<Matrix> = new JsonDecoder.Decoder<Matri
 
 export const correlationResponseDecoder = JsonDecoder.object<CorrelationResponse>(
     {
-        timeseries: JsonDecoder.array<TimeSeriesEntry>(timeSeriesEntryDecoder, 'TimeSeriesInformation[]'),
+        timeseries: JsonDecoder.array<CorrelationTimeSeriesEntry>(
+            correlationTimeSeriesEntryDecoder,
+            'CorrelationTimeSeriesEntry[]'
+        ),
         correlations: JsonDecoder.array<Matrix>(matrixDecoder, 'Matrix[]'),
         meanCorrelation: matrixDecoder,
         meanAbsCorrelation: matrixDecoder,
@@ -128,4 +187,74 @@ const matrixOrNumberDecoder = JsonDecoder.oneOf<DataValue>(
 export const dataArrayDecoder = JsonDecoder.array<DataRow>(
     JsonDecoder.dictionary(matrixOrNumberDecoder, 'DataRow'),
     'DataArray'
+);
+
+/* ***********
+ * SimSearch *
+ *********** */
+const numberOrStringOrArrayOfNumberOrStringDecoder = JsonDecoder.oneOf<string | number | Array<number | string>>(
+    [numberOrStringDecoder, numberOrStringArrayDecoder],
+    'number | string | Array<number | string>'
+);
+
+const searchColumnDataTypeDecoder = JsonDecoder.enumeration<SearchColumnDataType>(
+    SearchColumnDataType,
+    'SearchColumnDataType'
+);
+
+const searchColumnDecoder = JsonDecoder.object<SearchColumn>(
+    {
+        column: JsonDecoder.string,
+        datatype: searchColumnDataTypeDecoder,
+        operation: JsonDecoder.string,
+        sampleValue: numberOrStringOrArrayOfNumberOrStringDecoder,
+    },
+    'SearchColumn'
+);
+
+export const searchColumnArrayDecoder = JsonDecoder.array<SearchColumn>(searchColumnDecoder, 'SearchColumn[]');
+
+const strictSimilarityGraphNodeDecoder = JsonDecoder.object<SimilarityGraphNode>(
+    {
+        x: JsonDecoder.number,
+        y: JsonDecoder.number,
+        id: JsonDecoder.string,
+        totalScore: JsonDecoder.number,
+        cluster: JsonDecoder.number,
+        // Add default values for attributes that are used only in frontend
+        size: JsonDecoder.constant(0),
+        fillColor: JsonDecoder.constant('#000000'),
+        rank: JsonDecoder.constant(0),
+    },
+    'StrictSimilarityGraphNode'
+);
+
+const similarityGraphNodeDecoder = JsonDecoder.combine(
+    strictSimilarityGraphNodeDecoder,
+    JsonDecoder.dictionary<number | string | Array<number | string>>(
+        numberOrStringOrArrayOfNumberOrStringDecoder,
+        'Dict<number | string | Array<number | string>>'
+    )
+);
+
+const similarityGraphEdgeDecoder = JsonDecoder.object<SimilarityGraphEdge>(
+    {
+        left: JsonDecoder.string,
+        right: JsonDecoder.string,
+        score: JsonDecoder.number,
+    },
+    'SimilarityGraphEdge'
+);
+
+export const similarityGraphDecoder = JsonDecoder.object<SimilarityGraph>(
+    {
+        points: JsonDecoder.array<SimilarityGraphNode>(similarityGraphNodeDecoder, 'SimilarityGraphNode[]'),
+        adjMat: JsonDecoder.array<SimilarityGraphEdge>(similarityGraphEdgeDecoder, 'SimilarityGraphEdge[]'),
+    },
+    'SimilarityGraph'
+);
+
+export const similarityGraphArrayDecoder = JsonDecoder.array<SimilarityGraph>(
+    similarityGraphDecoder,
+    'SimilarityGraph[]'
 );

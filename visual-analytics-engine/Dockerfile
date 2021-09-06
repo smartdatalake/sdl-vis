@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.9
 
 # See: https://github.com/phusion/baseimage-docker/issues/319
 ARG DEBIAN_FRONTEND=noninteractive

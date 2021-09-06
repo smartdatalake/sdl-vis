@@ -177,8 +177,8 @@ class VPlot{
     let histogramTop = d3.histogram().domain(xScaleHistogram.domain()).thresholds(ticks)(distributionTop);
     let histogramBottom = d3.histogram().domain(xScaleHistogram.domain()).thresholds(ticks)(distributionBottom);
 
-    console.log("[vplot.js] histogramTop", histogramTop);
-    console.log("[vplot.js] histogramBottom", histogramBottom);
+    // console.log("[vplot.js] histogramTop", histogramTop);
+    // console.log("[vplot.js] histogramBottom", histogramBottom);
 
     // scale to draw the histogram
     let yScaleHistograms = undefined;

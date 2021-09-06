@@ -1,17 +1,21 @@
+from typing import List
+
 import numpy as np
 import pandas as pd
 
+from pydantic_models.misc.data_transformation import DataTransformation
 
-def transform(df, transformation_spec):
+
+async def transform(df, transformation_spec: List[DataTransformation]):
     for ts in transformation_spec:
-        if ts["type"] == "bin":
-            df = binning(df, ts["bins"], ts["field"])
-        elif ts["type"] == "aggregate":
-            df = aggregation(df, ts["op"], ts["field"], ts["as"])
-        elif ts["type"] == "filter":
-            df = filtering(df, ts["query"])
-        elif ts["type"] == "sample":
-            df = sampling(df, ts["count"])
+        if ts.type == "bin":
+            df = binning(df, ts.bins, ts.field)
+        elif ts.type == "aggregate":
+            df = aggregation(df, ts.op, ts.field, ts.as_)
+        elif ts.type == "filter":
+            df = filtering(df, ts.query)
+        elif ts.type == "sample":
+            df = sampling(df, ts.count)
 
     return df
 
@@ -55,4 +59,4 @@ def filtering(df, query):
 
 
 def sampling(df, sample_count):
-    return df.sample(sample_count)
+    return df.sample(min(sample_count, len(df)))

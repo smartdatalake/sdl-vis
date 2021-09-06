@@ -1,3 +1,4 @@
+import asyncio
 import os
 import sys
 
@@ -20,7 +21,7 @@ class ProteusManager(DBManager):
         self.__user = user
         self.__password = password
 
-        self.__connect()
+        # self.__connect()
 
     def __connect(self):
         if self.__connection is None:
@@ -35,7 +36,7 @@ class ProteusManager(DBManager):
             except Exception as e:
                 print("[ERR] Failed to connect to Proteus instance.", str(e), file=sys.stderr)
 
-    def query_schema(self, table_names=None):
+    async def query_schema(self, table_names=None):
         self.__connect()
 
         with ExtendedCursor(self.__connection) as cur:
@@ -51,13 +52,11 @@ class ProteusManager(DBManager):
             if table_names and (isinstance(table_names, list) or isinstance(table_names, tuple)):
                 tables = [tn for tn in table_names if tn in tables]
 
-            table_dict = {}
-            for table in tables:
-                table_dict[table] = self.__query_schema_for_table(table)
+            schemata = await asyncio.wait([self.__query_schema_for_table(table) for table in tables])
 
-            return table_dict
+            return {table: schema for table, schema in zip(tables, schemata)}
 
-    def __query_schema_for_table(self, table_name):
+    async def __query_schema_for_table(self, table_name):
         with ExtendedCursor(self.__connection) as cur:
             cur.meta_get_columns(table_name)
             row_headers = cur.get_column_names()
@@ -66,11 +65,11 @@ class ProteusManager(DBManager):
             column_names = [row[row_headers.index("COLUMN_NAME")] for row in rows]
             data_types = [row[row_headers.index("TYPE_NAME")] for row in rows]
 
-            # Replace with types that are readable
+            # Replace with pydantic_models that are readable
             def simplify_type(t):
                 _t = str(t).lower()
 
-                # Replace complex types
+                # Replace complex pydantic_models
                 if _t.startswith("recordtype"):
                     start_pos = _t.find("(")
                     end_pos = start_pos
@@ -95,7 +94,7 @@ class ProteusManager(DBManager):
 
             return columns
 
-    def query_table(self, table_name, columns=None, max_rows=100):
+    async def query_table(self, table_name, columns=None, max_rows=100):
         self.__connect()
 
         with ExtendedDictCursor(self.__connection) as cur:

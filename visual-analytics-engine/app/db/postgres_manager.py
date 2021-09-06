@@ -41,7 +41,7 @@ class PostgresManager(DBManager):
             except:
                 print("[ERR] Failed to connect to Postgres database.", file=sys.stderr)
 
-    def query_schema(self, table_names=None):
+    async def query_schema(self, table_names=None):
         self.__connect()
 
         with self.__connection.cursor() as cur:
@@ -71,7 +71,7 @@ class PostgresManager(DBManager):
 
             return table_dict
 
-    def query_table(self, table_name, columns=None, max_rows=100):
+    async def query_table(self, table_name, columns=None, max_rows=100):
         self.__connect()
 
         with self.__connection.cursor(cursor_factory=RealDictCursor) as cur:

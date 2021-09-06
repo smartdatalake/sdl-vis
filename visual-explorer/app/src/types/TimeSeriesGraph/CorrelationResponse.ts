@@ -1,14 +1,19 @@
 import { Matrix } from 'mathjs';
-import { TimeSeriesEntry } from 'types/TimeSeriesGraph/TimeSeriesCatalog';
+import { TimeSeriesInformation } from 'types/TimeSeriesGraph/TimeSeriesCatalog';
+
+export interface TimePoint {
+    date: Date;
+    value: number;
+}
+
+export interface CorrelationTimeSeriesEntry extends TimeSeriesInformation {
+    tsName: string;
+    rawDatapoints: TimePoint[];
+}
 
 export interface CorrelationResponse {
-    timeseries: TimeSeriesEntry[];
+    timeseries: CorrelationTimeSeriesEntry[];
     correlations: Matrix[];
     meanCorrelation: Matrix;
     meanAbsCorrelation: Matrix;
 }
-
-export const EMPTY_CORRELATION_RESPONSE = {
-    timeseries: [],
-    correlations: [],
-};

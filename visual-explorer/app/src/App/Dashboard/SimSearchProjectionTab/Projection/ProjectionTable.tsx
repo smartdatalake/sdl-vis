@@ -1,9 +1,10 @@
 import React, { useContext, useState } from 'react';
 import styled from 'styled-components';
 import { Card, Spinner, Table } from 'react-bootstrap';
-import { SimilarityGraph, SimilaritySearchStates } from '../useSimilaritySearch';
+import { SimilaritySearchStates } from '../useSimilaritySearch';
 import SimilaritySearchContext from '../Context';
 import { FaAngleDown, FaAngleUp } from 'react-icons/fa';
+import { SimilarityGraph } from 'types/SimSearch/SimilarityGraph';
 
 const FloatingCard = styled(Card)`
     right: 15px;
@@ -201,7 +202,7 @@ const ProjectionTable = ({ similaritySearchStates }: { similaritySearchStates: S
             </CardHead>
             {!isMinimized && (
                 <Card.Body>
-                    <Table striped={true} bordered={true} hover={true} size="sm">
+                    <Table responsive={true} striped={true} bordered={true} hover={true} size="sm">
                         <thead>{tableHead}</thead>
                         <tbody>{tableRows}</tbody>
                     </Table>

@@ -67,8 +67,6 @@ class BarchartCumulative {
       lastBottom = histogramBottom[i];
     }
 
-    console.log("histogramTop", histogramTop);
-
     // scale to draw the histogram
     let yScaleHistograms = undefined;
     let maxHistogramHeight = histogramfunctions.getMaxHistogramHeight(histogramTop, histogramBottom, distributionTop, distributionBottom);

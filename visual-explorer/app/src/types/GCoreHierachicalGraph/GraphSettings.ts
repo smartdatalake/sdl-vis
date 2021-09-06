@@ -6,23 +6,10 @@ interface Graph {
     // graphLinks: string[];
 }
 
-interface AlgorithmParamsKMeans {
-    k: number; // number of clusters
-    reps: number; // number of representative nodes per level per cluster. This number grows exponentially when the level id grows.
-    algorep: 'topk' | 'revtopk'; //  algorithm to be used to calculate the representative nodes of each level
-}
-
-interface AlgorithmParamsSingle {
-    k: number; // number of clusters
-    reps: number; // number of representative nodes per level per cluster.
-    splits: number; // Number of partitions to be used by Spark, for small datasets that fit into the memory it can be setted to 1 (Cordis graph dataset, DBLP dataset, SpazioDati sample dataset and etc). For big data datasets (SpazioDati full company dataset, GDELT dataset) it needs to be setted to more.
-}
-
 interface Algorithm {
-    algorithm: 'kmeans' | 'single';
+    algorithm: 'kmeansf' | 'kmeans' | 'single';
     featureExtractor: null | 'word2vec' | 'tfidf';
-    algorithmParamsKMeans: AlgorithmParamsKMeans;
-    algorithmParamsSingle: AlgorithmParamsSingle;
+    algorithmParams: Record<Algorithm['algorithm'], Record<string, string | number>>;
 }
 
 export interface GraphSettings {
@@ -30,25 +17,34 @@ export interface GraphSettings {
     algorithmSettings: Algorithm;
 }
 
-export const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
-    graphSettings: {
-        graphName: 'Iris',
-        graphAttributes: [],
-    },
-    algorithmSettings: {
-        algorithm: 'kmeans',
-        featureExtractor: null,
-        algorithmParamsKMeans: {
-            k: 3,
-            reps: 5,
-            algorep: 'topk',
+export const constructDefaultGraphSettings = (graphName: string): GraphSettings => {
+    return {
+        graphSettings: {
+            graphName: graphName,
+            graphAttributes: [],
         },
-        algorithmParamsSingle: {
-            k: 3,
-            reps: 5,
-            splits: 1,
+        algorithmSettings: {
+            algorithm: 'kmeansf',
+            featureExtractor: null,
+            algorithmParams: {
+                kmeansf: {
+                    k: 3,
+                    reps: 5,
+                    algorep: 'topk',
+                },
+                kmeans: {
+                    k: 3,
+                    reps: 5,
+                    algorep: 'topk',
+                },
+                single: {
+                    k: 3,
+                    reps: 5,
+                    splits: 1,
+                },
+            },
         },
-    },
+    };
 };
 
 // Get or set values of a graph settings object

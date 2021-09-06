@@ -16,17 +16,14 @@ services:
   #######################
   visual-explorer:
     container_name: sdl_visual-explorer
-    image: node:15.5.1-buster
+    image: sdl_visual-explorer:latest
+    build:
+      context: ./visual-explorer/
+      dockerfile: ./Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./visual-explorer/app:/usr/src/app
-    working_dir: /usr/src/app
-    # `npm rebuild node-sass` is a workaround for https://gitlab.dbvis.de/SmartDataLake/development/-/issues/8.
     # `CI=true` is a workaround for https://github.com/facebook/create-react-app/issues/8688
-    command: ["sh", "-c", "npm install && npm rebuild node-sass && CI=true npm run-script start"]
-    networks:
-      - sdl_net
+    command: ["sh", "-c", "CI=true npm run-script start"]
 
   ###############################
   # SDL Visual Analytics Engine #
@@ -46,7 +43,8 @@ services:
     volumes:
       - ./visual-analytics-engine/app:/usr/src/app
       - ./visual-analytics-engine/data/input:/data/input
-      - vae-data:/data/output
+      # - vae-data:/data/output
+      - ./visual-analytics-engine/data/output:/data/output
     env_file:
       - ./config/postgres.env
       - ./config/proteus.env
@@ -60,6 +58,7 @@ services:
     command: ["python", "app.py", "--port", "8080", "--dev"]
     depends_on:
       - redis
+      - test-db
     networks:
       - sdl_net
 
@@ -93,8 +92,6 @@ services:
       - ./config/proteus.env
     working_dir: /home/jovyan
     command: ["sh", "-c", "cd /home/jovyan/notebooks && jupyter-lab --port=3002"]
-    networks:
-      - sdl_net
 
   ###########
   # V-Plots #
@@ -108,8 +105,6 @@ services:
       - ./v-plots/app:/usr/src/app
     working_dir: /usr/src/app
     command: ["sh", "-c", "npm install && npx bower --allow-root install && npx grunt serve"]
-    networks:
-      - sdl_net
 
   ####################
   # Postgres Test DB #

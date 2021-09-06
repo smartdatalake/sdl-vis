@@ -1,49 +1,43 @@
-import React from 'react';
-import { DataArray, DataRow, isNumber, isString } from 'types/DataArray';
+import React, { useState } from 'react';
 import { Margin } from 'types/Margin';
 import { scaleLinear } from '@visx/scale';
 import { Group } from '@visx/group';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { bounds, getNumberFormatter } from 'tools/helpers';
-import { ordinalColorscale } from 'tools/color';
-import DataPoint from 'App/Dashboard/HierarchicalGraphTab/VisualizationPanel/DataPoint';
-import ClusterHull from 'App/Dashboard/HierarchicalGraphTab/VisualizationPanel/ClusterHull';
+import Cluster from 'App/Dashboard/HierarchicalGraphTab/VisualizationPanel/Cluster/Cluster';
+import { interpolateRainbow } from 'd3-scale-chromatic';
+import produce from 'immer';
+import _ from 'lodash';
+import { HierarchicalGraphLevel, HierarchicalGraphNode } from 'types/HierarchicalGraphLevel';
+import { createToLocal } from 'tools/createToLocal';
 
 const DEFAULT_MARGIN: Margin = { top: 10, right: 25, bottom: 35, left: 45 };
 
-export interface FormattedGraphDataRow extends DataRow {
-    x: number;
-    y: number;
-    cluster: number | string;
-}
-
 interface Props {
-    graphData: DataArray;
+    graphData: HierarchicalGraphLevel;
     width: number;
     height: number;
     margin?: Margin;
 }
 
 const HierachicalGraphVis: React.FunctionComponent<Props> = ({
-    graphData: rawGraphData,
+    graphData,
     width,
     height,
     margin = DEFAULT_MARGIN,
 }: Props) => {
-    const dataPoints: Array<FormattedGraphDataRow> = rawGraphData
-        .map((row) => ({
-            x: isNumber(row.x) ? row.x : 0,
-            y: isNumber(row.y) ? row.y : 0,
-            cluster: isNumber(row.cluster) || isString(row.cluster) ? row.cluster : 'undefined',
-            ...row,
-        }))
-        .sort((a, b) => (a.cluster + '').localeCompare(b.cluster + ''));
+    // Holds the descendant points per cluster.
+    const [descendantPoints, setDescendantPoints] = useState<Record<number | string, HierarchicalGraphNode[]>>({});
 
-    const xBounds = bounds(dataPoints.map((d) => d.x));
-    const yBounds = bounds(dataPoints.map((d) => d.y));
+    const dataPoints = graphData.nodes;
 
-    const distinctLabels = [...new Set(dataPoints.map((d) => d.cluster))].sort();
-    const scaleLabel = ordinalColorscale(distinctLabels);
+    // Get value ranges of x- and y-Axis (over all points in the graph).
+    const allPoints = [...dataPoints, ..._.flatten(Object.values(descendantPoints))];
+    const xBounds = bounds(allPoints.map((d) => d.x));
+    const yBounds = bounds(allPoints.map((d) => d.y));
+
+    const distinctClusterLabels = [...new Set(dataPoints.map((d) => d.cluster))].sort();
+    const colorScale = interpolateRainbow;
 
     // Create scales
     const xMax = width - margin.left - margin.right;
@@ -59,28 +53,40 @@ const HierachicalGraphVis: React.FunctionComponent<Props> = ({
         range: [yMax, 0],
     });
 
-    const toLocal = (dataPoint: FormattedGraphDataRow) => ({
-        ...dataPoint,
-        x: scaleX(dataPoint.x),
-        y: scaleY(dataPoint.y),
-    });
+    const toLocal = createToLocal(scaleX, scaleY);
 
     return (
         <Group left={margin.left} top={margin.top}>
             <AxisLeft tickFormat={getNumberFormatter(3)} scale={scaleY} numTicks={5} />
             <AxisBottom tickFormat={getNumberFormatter(3)} top={yMax} scale={scaleX} numTicks={5} />
 
-            {distinctLabels.map((l) => {
-                const localClusterDataPoints: FormattedGraphDataRow[] = dataPoints
-                    .filter((p) => p.cluster == l)
-                    .map(toLocal);
+            {/* TODO: Fix the z-index problem (Cluster Hull below Cluster Points). E.g., by using portals? */}
+            {distinctClusterLabels.map((l, idx) => {
+                const onBoundariesUpdateHandler = (points: HierarchicalGraphNode[]) => {
+                    setDescendantPoints((prevState) =>
+                        produce(prevState, (draftState) => {
+                            draftState[l] = points;
+                        })
+                    );
+                };
 
-                return <ClusterHull key={'cluster_' + l} dataPoints={localClusterDataPoints} color={scaleLabel(l)} />;
+                const clusterDataPoints = dataPoints.filter((p) => p.cluster == l);
+
+                return (
+                    <Cluster
+                        transactionId={graphData.transactionId}
+                        key={`cluster_l0_c${l}`}
+                        clusterId={l}
+                        level={0}
+                        toLocal={toLocal}
+                        dataPoints={clusterDataPoints}
+                        colorScale={(t: number) =>
+                            colorScale(t / distinctClusterLabels.length + idx / distinctClusterLabels.length)
+                        }
+                        onBoundariesUpdate={onBoundariesUpdateHandler}
+                    />
+                );
             })}
-
-            {dataPoints.map(toLocal).map((p, idx) => (
-                <DataPoint key={idx} x={p.x} y={p.y} color={scaleLabel(p.cluster)} dataPoint={p} />
-            ))}
         </Group>
     );
 };

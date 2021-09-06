@@ -1,7 +1,8 @@
 import { createContext } from 'react';
-import { ProjectionParameters } from './ProjectionParameters';
-import { SearchParameters, PossibleSearchParameter } from './SearchParameters';
-import { Node } from './Projection/ProjectionSVG';
+import { ProjectionParameters } from 'types/SimSearch/ProjectionParameters';
+import { SearchColumn } from 'types/SimSearch/SearchColumn';
+import { SearchParameters } from 'types/SimSearch/SearchParameters';
+import { SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
 
 interface SimilaritySearchContext {
     attributeToPreview: string | undefined;
@@ -12,10 +13,10 @@ interface SimilaritySearchContext {
     setProjectionParameters: (parameters: ProjectionParameters) => void;
     searchParameters: SearchParameters | undefined;
     setSearchParameters: (parameters: SearchParameters) => void;
-    highlightedNode: Node | null;
-    setHighlightedNode: (highlightedNode: Node | null) => void;
-    possibleParameter: PossibleSearchParameter[] | null;
-    setPossibleParameter: (param: PossibleSearchParameter[] | null) => void;
+    highlightedNode: SimilarityGraphNode | null;
+    setHighlightedNode: (highlightedNode: SimilarityGraphNode | null) => void;
+    searchColumns: SearchColumn[] | null;
+    setPossibleParameter: (param: SearchColumn[] | null) => void;
     newQueryResults: boolean;
     setNewQueryResults: (newQuery: boolean) => void;
 }
@@ -26,7 +27,7 @@ const defaultContext: SimilaritySearchContext = {
     projectionParameters: undefined,
     searchParameters: undefined,
     highlightedNode: null,
-    possibleParameter: null,
+    searchColumns: null,
     newQueryResults: false,
 
     setAttributeToPreview: () => {

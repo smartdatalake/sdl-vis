@@ -1,7 +1,8 @@
-import json
 import sys
 
 import requests
+
+from pydantic_models.requests.qal_payload import QALOp
 
 
 class QALManager:
@@ -10,39 +11,21 @@ class QALManager:
     def __init__(self, qal_endpoint):
         self._qal_endpoint = qal_endpoint
 
-    def query(self, table, op):
-        return self._query_cache_helper(table, json.dumps(op, sort_keys=True))
+    async def query(self, table, op: QALOp):
+        if op.type == "binning":
+            return self._binning(table, op)
 
-    def _query_cache_helper(self, table, op_hashable_json):
-        op = json.loads(op_hashable_json)
+        if op.type == "profiling":
+            return self._profiling(table, op)
 
-        optional_qal_params = {}
-        if "confidence" in op:
-            optional_qal_params["confidence"] = op["confidence"]
-        if "error" in op:
-            optional_qal_params["error"] = op["error"]
-
-        if op["type"] == "binning":
-            return self._binning(table,
-                                 op["field"],
-                                 op["numBins"],
-                                 **optional_qal_params)
-
-        if op["type"] == "profiling":
-            return self._profiling(table,
-                                   **optional_qal_params)
-
-        if op["type"] == "quantile":
-            return self._quantile(table,
-                                  op["field"],
-                                  op["percentage"],
-                                  **optional_qal_params)
+        if op.type == "quantile":
+            return self._quantile(table, op)
 
         return {}
 
-    def _binning(self, table, field, num_bins, confidence=90, error=10):
-        table_profile = self._profiling(table)
-        table_profile_filtered = list(filter(lambda f: f["name"] == field, table_profile))
+    def _binning(self, table, op: QALOp):
+        table_profile = self._profiling(table, op)
+        table_profile_filtered = list(filter(lambda f: f["name"] == op.field, table_profile))
 
         if len(table_profile_filtered) == 1:
             field_profile = table_profile_filtered[0]
@@ -50,20 +33,20 @@ class QALManager:
             min_val = field_profile["min"]
             max_val = field_profile["max"]
 
-            query = f"select binning({field},{min_val},{max_val},{num_bins}) from {table} confidence {confidence} error {error}"
+            query = f"select binning({op.field},{min_val},{max_val},{op.num_bins}) from {table} confidence {op.confidence} error {op.error}"
             return self._execute_query(query)
 
         return []
 
-    def _profiling(self, table, confidence=90, error=10):
-        query = f"dataProfile {table} confidence {confidence} error {error}"
+    def _profiling(self, table, op: QALOp):
+        query = f"dataProfile {table} confidence {op.confidence} error {op.error}"
         return self._execute_query(query)
 
-    def _quantile(self, table, field, percentage, confidence=90, error=10):
-        query = f"select quantile({field},{percentage}) from {table} confidence {confidence} error {error}"
+    def _quantile(self, table, op: QALOp):
+        query = f"select quantile({op.field},{op.percentage}) from {table} confidence {op.confidence} error {op.error}"
         return self._execute_query(query)
 
-    def _execute_query(self, query):
+    def _execute_query(self, query: str):
         response = requests.get(self._qal_endpoint, params={"query": query})
 
         try:

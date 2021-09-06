@@ -1,16 +1,17 @@
-import { ScaleLinear } from 'd3';
 import React, { useContext } from 'react';
 import { SimilaritySearchStates } from '../useSimilaritySearch';
 import SimilaritySearchContext from '../Context';
 
-import { ProjectionAlgorithm } from '../ProjectionParameters';
+import { ProjectionAlgorithm } from 'types/SimSearch/ProjectionParameters';
 import Edges from './Edges';
 import Nodes from './Nodes';
-import { ColoredNode, Node } from './ProjectionSVG';
+import { ColoredNode } from './ProjectionSVG';
 import ConvexHull from './ConvexHull';
 
 import ForceGraph2D from 'react-force-graph-2d';
 import { computeColor } from 'App/Dashboard/SimSearchProjectionTab/Projection/computeColor';
+import { ScaleLinear } from 'd3-scale';
+import { SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
 
 const SimilaritySearch = ({
     similaritySearchStates,
@@ -26,7 +27,7 @@ const SimilaritySearch = ({
     const weightedEdges = similaritySearchStates.current.adjMat;
     const { projectionParameters } = useContext(SimilaritySearchContext);
 
-    let nodesWithPreview: [Node | undefined, ColoredNode[]][] = [];
+    let nodesWithPreview: [SimilarityGraphNode | undefined, ColoredNode[]][] = [];
     // Current nodes and their counterparts in other states.
     // color of counterpart = color of node
     nodesWithPreview = nodesWithPreview.concat(
@@ -56,7 +57,7 @@ const SimilaritySearch = ({
             ])
     );
 
-    const algorithm = projectionParameters?.algorithm || '';
+    const algorithm = projectionParameters?.type || '';
     const forceObj = {
         nodes: nodes.map((n) => {
             return { ...n, id: n.id.split(';')[0] };

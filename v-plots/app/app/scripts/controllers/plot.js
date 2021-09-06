@@ -392,7 +392,7 @@ angular.module('codeApp')
 
     /** Communication with the backend to get data from the database */
     async function getDatafromDB(data) {
-      const response = await fetch('http://127.0.0.1:3001/table', {
+      const response = await fetch('http://127.0.0.1:3001/relational/table', {
         method: 'POST',
         mode: 'cors',
         credentials: 'same-origin',
@@ -410,7 +410,7 @@ angular.module('codeApp')
      */
     $scope.getTablesfromDB = function() {
       const queryFn = async () => {
-        const response = await fetch('http://127.0.0.1:3001/schema', {
+        const response = await fetch('http://127.0.0.1:3001/relational/schema', {
           method: 'POST',
           mode: 'cors',
           credentials: 'same-origin',

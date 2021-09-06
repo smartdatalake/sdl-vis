@@ -1,179 +1,229 @@
-import hashlib
+import asyncio
 import json
-from hashlib import sha256
 from urllib.parse import urljoin
 
-import networkx as nx
+import aiohttp
 import numpy as np
 import pandas as pd
 import requests
 import umap
 
-from tools import cache
+from pydantic_models.requests.graph_cluster_payload import GraphClusterPayload
+from pydantic_models.requests.graph_init_payload import GraphInitPayload
+from redis_tools import cached, hash_args, set_df, get_df, set_dict, get_dict
 
 
 class GCoreManager:
     _service_url = None
+    _latest_init_objects = {
+        "attributes": None,
+        "df_embeddings": None
+    }
 
     def __init__(self, gcore_endpoint):
         self._service_url = gcore_endpoint
+        self._asyncio_loop = asyncio.get_event_loop()
 
     ######################################
     # Methods for Hierarchical Graph Vis #
     ######################################
-    def get_available_graphs(self):
-        result = {}
-
+    @cached(alias="default", key_builder=lambda fn, *args, **kwargs: "26f41a0a_" + hash_args(args[1:]))
+    async def get_available_graphs(self):
         graph_db_response = requests.post(urljoin(self._service_url, "graphDB"))
 
         if graph_db_response.ok:
             graph_db = json.loads(graph_db_response.content)
 
-            for graph_name in graph_db:
-                graph_schema = self._get_graph_schema(graph_name)
+            async with aiohttp.ClientSession() as session:
+                res = await asyncio.gather(*[self._get_graph_schema(session, graph_name) for graph_name in graph_db])
+                return {graph_name: response for (graph_name, response) in zip(graph_db, res) if response is not False}
 
-                if graph_schema:
-                    result[graph_name] = graph_schema
+        # Fallback: empty dict.
+        return {}
 
-        return result
-
-    @cache.cached(timeout=31536000,
-                  make_cache_key=lambda *args, **_: "26f41a0a_" + sha256(args[1].encode("utf-8")).hexdigest())
-    def _get_graph_schema(self, graph_name: str, timeout: int = 10):
+    async def _get_graph_schema(self, session: aiohttp.ClientSession, graph_name: str, timeout: int = 10):
         print("Querying graph schema for graph '" + graph_name + "'.")
         try:
-            graph_schema_response = requests.post(urljoin(self._service_url, "/".join(["graphDB", graph_name])),
-                                                  timeout=timeout)
+            url = urljoin(self._service_url, "/".join(["graphDB", graph_name]))
 
-            if graph_schema_response.ok:
-                graph_schema = json.loads(graph_schema_response.content)
-                graph_schema["links"] = json.loads(graph_schema["links"])
-                graph_schema["nodes"] = json.loads(graph_schema["nodes"])
+            async with session.post(url=url, timeout=timeout) as graph_schema_response:
+                if graph_schema_response.ok:
+                    graph_schema = await graph_schema_response.json()
+                    graph_schema["links"] = json.loads(graph_schema["links"])
+                    graph_schema["nodes"] = json.loads(graph_schema["nodes"])
 
-                return graph_schema
+                    return graph_schema
+                else:
+                    graph_schema_response.raise_for_status()
         except Exception as e:
-            print("Error while querying schema for graph '" + graph_name + "':", e)
+            print(f"{type(e).__name__} while querying schema for graph '{graph_name}'.")
 
         return False
 
-    def hierarchical_graph_select_neighbors(self, node_param):
-        r = requests.post(url=self._service_url + "gcore/select-neighbor", json=node_param)
-        neighbor_data = pd.DataFrame.from_dict(json.loads(r['content']))
-        return neighbor_data
+    async def hierarchical_graph_init(self, payload: GraphInitPayload):
+        # Store the attributes in a distinct variable since it is used multiple times in the following
+        attributes = payload.graphSettings.graphAttributes
 
-    def hierarchical_graph_construct_neighbors(self, node_param):
-        r = requests.post(url=self._service_url + "gcore/construct-neighbor", json=node_param)
-        graph_neighbor = nx.readwrite.json_graph.node_link_graph(r.content)
-        return graph_neighbor
+        # Extract the distinct vertex labels from all vertices the user wants to query.
+        # E.g., the user queries verta$attr1, verta$attr2, and vertb$attr1.
+        # Then the result of this would be the list ["verta", "vertb"].
+        distinct_vertex_labels = list(set(map(lambda a: a.split("$")[0], attributes)))
 
-    def hierarchical_graph_init(self, graph_settings):
         # Transform to correct payload format
         # See: https://docs.google.com/document/d/1IpOJtUQe4ip8QlH4pgBys_q5qtfdxtxd7TlsdIujoDU
-        graph_label = "a"
-        attributes = graph_settings["graphSettings"]["graphAttributes"]
         params = {
-            "attributes": list(map(lambda x: f"{graph_label}${x}", attributes)),
+            "attributes": attributes,
             "graph": {
-                "name": graph_settings["graphSettings"]["graphName"],
-                "vertices": [
-                    {
-                        "label": graph_settings["graphSettings"]["graphName"].lower(),
-                        "variable": graph_label,
-                    }
-                ],
+                "name": payload.graphSettings.graphName,
+                "vertices": list(map(lambda vertex_label: {
+                    "label": vertex_label,  # Assign the vertex_label as label,
+                    "variable": vertex_label,  # as well as for the placeholder variable
+                }, distinct_vertex_labels)),
                 "edges": []
             },
-            "algorithm": graph_settings["algorithmSettings"]["algorithm"],
+            "algorithm": payload.algorithmSettings.algorithm,
             "feature":
-                graph_settings["algorithmSettings"]["featureExtractor"]
-                if graph_settings["algorithmSettings"]["featureExtractor"]
+                payload.algorithmSettings.featureExtractor
+                if payload.algorithmSettings.featureExtractor
                 else "none",
-            "algoParams":
-                json.dumps(graph_settings["algorithmSettings"]["algorithmParamsKMeans"])
-                if graph_settings["algorithmSettings"]["algorithm"] == "kmeans"
-                else json.dumps(graph_settings["algorithmSettings"]["algorithmParamsSingle"])
+            "algoParams": json.dumps(payload.algorithmSettings.algorithmParams[payload.algorithmSettings.algorithm])
         }
 
-        # r = requests.post(url=self._service_url + "graphvis/initialvis", json=params)
-        r = self.temp_cached_query_helper(params)
+        # DEBUG
+        # with open(f"/data/output/hierarchical-graph-init_request-payload_{time.time()}.json", "w") as f:
+        #     json.dump(params, f, indent=4)
+
+        r = await self.hierarchical_graph_init_cached_api_call(params)
 
         if r.ok:
             # Parse the information in the response. Nested fields might be stringified JSONs.
             content = json.loads(r.content)
+            # with open(f"/data/output/hierarchical-graph-init_result_{time.time()}.json", "w") as f:
+            #     json.dump(content, f, indent=4)
 
             raw_nodes = json.loads(content["graph"]["nodes"])
             raw_links = json.loads(content["graph"]["links"])
             raw_similarity = json.loads(content["similarity"])
+            transaction_id = content["visid"]
 
-            # Convert similarity information from
-            #   {"138": [
-            #       {"id":20,"distance":3.562302626111375},
-            #       {"id":23,"distance":3.4928498393145957},
-            #       ...],
-            #    ...}
-            # to
-            #   {"138": {
-            #       "20": 3.562302626111375,
-            #       "23": 3.4928498393145957,
-            #       ...},
-            #    ...}
-            for n1_key, n1 in raw_similarity.items():
-                raw_similarity[n1_key] = {str(n2["id"]): n2["distance"] for n2 in n1}
+            ###############################################################################
+            # Convert similarity information from upper triangle of matrix to full matrix #
+            ###############################################################################
 
-            # Convert similarity information to distance matrix
-            node_ids = raw_similarity.keys()
-            distance_matrix = np.zeros(shape=[len(node_ids), len(node_ids)])
+            # Get total number of nodes (row_ids) from the similarity matrix instead of nodes since the
+            # similarity matrix is ensured to be complete in the init call, while the nodes are only
+            # cluster representatives.
+            total_num_nodes = len(raw_similarity) + 1
 
-            for n1_id, n1_name in enumerate(node_ids):
-                for n2_id, n2_name in enumerate(node_ids):
-                    if n1_name in raw_similarity:
-                        if n2_name in raw_similarity[n1_name]:
-                            distance_matrix[n1_id][n2_id] = raw_similarity[n1_name][n2_name]
+            # Create full square matrix of ones.
+            distance_matrix = np.ones(shape=(total_num_nodes, total_num_nodes))
+
+            # Copy the entries from the upper triangle of matrix to their respective location in the full matrix.
+            for list_index_d0 in range(total_num_nodes - 1):
+                for list_index_d1 in range(total_num_nodes - 1 - list_index_d0):
+                    matrix_index_d0 = list_index_d0
+                    matrix_index_d1 = list_index_d0 + list_index_d1 + 1
+
+                    distance_matrix[matrix_index_d0][matrix_index_d1] = raw_similarity[list_index_d0][list_index_d1]
+                    distance_matrix[matrix_index_d1][matrix_index_d0] = raw_similarity[list_index_d0][list_index_d1]
 
             # Transform the raw nodes from SHINER to our graph format
             df_nodes = pd.DataFrame(raw_nodes)
-            # Strip graph label from attribute column headers and rename id column
-            df_nodes.rename(columns={f"{graph_label}${a}": a for a in attributes}, inplace=True)
+            # Rename id column
             df_nodes.rename(columns={"rowId": "id"}, inplace=True)
-            # Convert values to correct data types
+            # Convert values to correct data pydantic_models
             df_nodes[attributes] = df_nodes[attributes].astype(float)
-            df_nodes["id"] = df_nodes["id"].astype(str)
+            df_nodes["id"] = df_nodes["id"].astype(int)
 
             # Project based on the distance matrix
             embeddings = project_on_distances(distance_matrix)
             df_embeddings = pd.DataFrame(embeddings, columns=["x", "y"])
             # Attach id column, which tells both the order of the data points in the distance matrix and the node id
-            df_embeddings["id"] = node_ids
+            df_embeddings["id"] = list(range(total_num_nodes))
+
+            # Store details on this transaction for later use in hierarchical_graph_cluster()
+            set_dict(f"gcore_transaction-{transaction_id}_attributes", attributes)
+            set_df(f"gcore_transaction-{transaction_id}_df-embeddings", df_embeddings)
 
             # INNER JOIN on id to merge node info with embeddings
             df_nodes = pd.merge(df_nodes, df_embeddings, on='id', how='inner')
 
+            # Split between attribute and other columns
+            df_attrs = df_nodes[attributes]
+            df_nodes = df_nodes[df_nodes.columns.difference(attributes)]
+
             # Convert the result to JSON and return it
-            records = df_nodes.to_json(orient="records")
-            return records
+            node_records = df_nodes.to_dict(orient="records")
+            attr_records = df_attrs.to_dict(orient="records")
+            for record_idx, node_record in enumerate(node_records):
+                node_record["attributes"] = attr_records[record_idx]
 
-    def hierarchical_graph_next_level(self, param):
-        print(param)
-        r = requests.post(url=self._service_url + "graphvis/nextlevel", json=param)
-        print(r.content)
-        return r.content
+            return {
+                "transactionId": transaction_id,
+                "nodes": node_records
+            }
 
-    # Temporary helpers to speed up development
-    def temp_cached_query_helper_mck(*args, **_):
-        args_str = json.dumps(dict(args[1]), sort_keys=True)
-        args_hash_str = str(hashlib.sha256(args_str.encode("utf-8")).hexdigest())
-        cache_key = "a7f89d42_" + args_hash_str
-        return cache_key
+    async def hierarchical_graph_cluster(self, payload: GraphClusterPayload):
+        # Transform to correct payload format
+        # See: https://docs.google.com/document/d/1IpOJtUQe4ip8QlH4pgBys_q5qtfdxtxd7TlsdIujoDU
+        params = {
+            "visid": payload.transactionId,
+            "level": payload.level,
+            "clusterid": payload.clusterId,
+            "numpoints": payload.numNeighbors,
+            "id": payload.idOfClosestNeighbor,
+        }
 
-    @cache.cached(timeout=31536000,
-                  make_cache_key=temp_cached_query_helper_mck)
-    def temp_cached_query_helper(self, params):
+        r = await self.hierarchical_graph_cluster_cached_api_call(params)
+
+        if r.ok:
+            # Parse the information in the response. Nested fields might be stringified JSONs.
+            content = json.loads(r.content)
+            # with open(f"/data/output/hierarchical-graph-cluster_result_{time.time()}.json", "w") as f:
+            #     json.dump(content, f, indent=4)
+
+            raw_nodes = json.loads(content["graph"]["nodes"])
+
+            # Get details on this transaction from init operation
+            attributes = get_dict(f"gcore_transaction-{payload.transactionId}_attributes")
+            df_embeddings = get_df(f"gcore_transaction-{payload.transactionId}_df-embeddings")
+
+            # Transform the raw nodes from SHINER to our graph format
+            df_nodes = pd.DataFrame(raw_nodes)
+            # Rename id column
+            df_nodes.rename(columns={"rowId": "id"}, inplace=True)
+            # Convert values to correct data pydantic_models
+            df_nodes[attributes] = df_nodes[attributes].astype(float)
+            df_nodes["id"] = df_nodes["id"].astype(int)
+
+            # The projection should be done at this point (in graphvis init method). Use the latest embeddings
+            # and join with the respective points.
+            # INNER JOIN on id to merge node info with embeddings
+            df_nodes = pd.merge(df_nodes, df_embeddings, on='id', how='inner')
+
+            # Split between attribute and other columns
+            df_attrs = df_nodes[attributes]
+            df_nodes = df_nodes[df_nodes.columns.difference(attributes)]
+
+            # Convert the result to JSON and return it
+            node_records = df_nodes.to_dict(orient="records")
+            attr_records = df_attrs.to_dict(orient="records")
+            for record_idx, node_record in enumerate(node_records):
+                node_record["attributes"] = attr_records[record_idx]
+
+            return {
+                "transactionId": payload.transactionId,
+                "nodes": node_records
+            }
+
+    # Do not cache this endpoint, so it actually creates a new transaction in the SHINNER system.
+    # @cached(alias="default", key_builder=lambda fn, *args, **kwargs: "a7f89d42_" + hash_args(args[1:]))
+    async def hierarchical_graph_init_cached_api_call(self, params):
         return requests.post(url=self._service_url + "graphvis/initialvis", json=params)
 
-
-# For compatibily with Python 3.7; in Python 3.9+ there is a str.removeprefix method.
-def remove_prefix(text, prefix):
-    return text[text.startswith(prefix) and len(prefix):]
+    @cached(alias="default", key_builder=lambda fn, *args, **kwargs: "117e38d2_" + hash_args(args[1:]))
+    async def hierarchical_graph_cluster_cached_api_call(self, params):
+        return requests.post(url=self._service_url + "graphvis/nextlevel", json=params)
 
 
 def project_on_distances(distance_matrix: np.ndarray) -> np.ndarray:

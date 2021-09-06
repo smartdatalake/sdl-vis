@@ -1,34 +1,37 @@
 import argparse
-import hashlib
-import json
 import os
-import pathlib
 import sys
 import warnings
 
-import networkx as nx
-from flask import Flask, request, make_response, jsonify
-from flask_cors import CORS
-from gevent import monkey
-from gevent.pywsgi import WSGIServer
-
-from tools.helpers import exception_to_success_message
-
-monkey.patch_all()
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 
 from db import PostgresManager, ProteusManager, QALManager, GCoreManager
-from mining_engine import cluster_graph_hierarchical
-from tools.data_transformer import transform
+from db.simsearch_manager import SimSearchManager
 from db.timeseries_manager import TimeSeriesManager
-from tools.flask_cache import cache
+from pydantic_models.requests.graph_cluster_payload import GraphClusterPayload
+from pydantic_models.requests.graph_init_payload import GraphInitPayload
+from pydantic_models.requests.qal_payload import QALPayload
+from pydantic_models.requests.relational_schema_payload import RelationalSchemaPayload
+from pydantic_models.requests.relational_table_payload import RelationalTablePayload
+from pydantic_models.requests.relational_table_transform_payload import RelationalTableTransformPayload
+from pydantic_models.requests.simsearch_search_payload import SimsearchSearchPayload
+from pydantic_models.requests.timeseries_catalog_search_payload import TimeseriesCatalogSearchPayload
+from pydantic_models.requests.timeseries_correlate_payload import TimeseriesCorrelatePayload
+from pydantic_models.responses.graph_catalog import GraphCatalog
+from pydantic_models.responses.graph_clustered_level import GraphClusteredLevel
+from pydantic_models.responses.relational_schema_catalog import RelationalSchemaCatalog
+from pydantic_models.responses.relational_table import RelationalTable
+from pydantic_models.responses.relational_table_transformed import RelationalTableTransformed
+from pydantic_models.responses.simsearch_column import SimsearchColumns
+from pydantic_models.responses.simsearch_similarity_graph import SimilarityGraphs
+from pydantic_models.responses.timeseries_catalog import TimeseriesCatalog
+from pydantic_models.responses.timeseries_correlation_response import CorrelationResponse
+from tools.data_transformer import transform
 
 warnings.filterwarnings("ignore", category=UserWarning)
-
-
-# Create paths in output
-def create_paths():
-    pathlib.Path("/data/output/graph").mkdir(parents=True, exist_ok=True)
-
 
 # Get environment variables
 POSTGRES_DB = os.environ["POSTGRES_DB"]
@@ -50,205 +53,196 @@ SIMSEARCH_API_KEY = os.environ["SIMSEARCH_API_KEY"]
 TIMESERIES_ENDPOINT = os.environ["TIMESERIES_ENDPOINT"]
 TIMESERIES_API_KEY = os.environ["TIMESERIES_API_KEY"]
 
+app = FastAPI(
+    title="Visual Analytics Engine",
+    description="""The computational backend of the visual analytics layer of the
+                   [SmartDataLake](https://smartdatalake.eu/) project.""",
+    version="0.1.0",
+    contact={
+        "name": "Thilo Spinner",
+        "url": "https://www.vis.uni-konstanz.de/en/members/spinner",
+        "email": "thilo.spinner@uni-konstanz.de",
+    },
+)
 
-def make_flask_app() -> Flask:
-    app = Flask(__name__)
-    cache.init_app(app, config={
-        'DEBUG': True,
-        'CACHE_TYPE': 'redis',
-        'CACHE_KEY_PREFIX': 'vae_flask_',
-        'CACHE_DEFAULT_TIMEOUT': 31536000,
-        'CACHE_REDIS_HOST': 'redis',
-        'CACHE_REDIS_PORT': '6379'
-    })
+# Allow CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    from db.simsearch_manager import SimSearchManager
+simsearch_manager = SimSearchManager(SIMSEARCH_ENDPOINT, SIMSEARCH_CATALOG_ENDPOINT, SIMSEARCH_API_KEY)
+postgres_manager = PostgresManager(POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, "test-db")
+proteus_manager = ProteusManager(PROTEUS_URL, PROTEUS_USER, PROTEUS_PASSWORD)
+qal_manager = QALManager(QAL_ENDPOINT)
+gcore_manager = GCoreManager(GCORE_ENDPOINT)
+timeseries_manager = TimeSeriesManager(TIMESERIES_ENDPOINT, TIMESERIES_API_KEY)
 
-    # Custom function to also include JSON request body into caching hash
-    def make_cache_key(*args, **kwargs):
-        args_str = json.dumps(dict(request.json), sort_keys=True)
-        path_str = str(request.path)
-        args_hash_str = str(hashlib.sha256(args_str.encode("utf-8")).hexdigest())
-        path_hash_str = str(hashlib.sha256(path_str.encode("utf-8")).hexdigest())
-        cache_key = path_hash_str + "/" + args_hash_str
-        # print("Generating cache key from", args_str, path_str, "=>", cache_key)
-        return cache_key
 
-    create_paths()
+@app.get("/",
+         response_class=HTMLResponse,
+         tags=["ROOT"])
+async def root():
+    html_content = """
+        <html>
+            <head>
+                <title>SDL VAE</title>
+            </head>
+            <body>
+                <h1>SmartDataLake Visual Analytics Engine</h1>
+                Visit the <a href="/docs">API doc</a> (<a href="/redoc">alternative</a>) for usage information or
+                <a href="https://smartdatalake.eu/">smartdatalake.eu</a> for information on the project.
+            </body>
+        </html>
+        """
+    return HTMLResponse(content=html_content, status_code=200)
 
-    simsearch_manager = SimSearchManager(SIMSEARCH_ENDPOINT, SIMSEARCH_CATALOG_ENDPOINT, SIMSEARCH_API_KEY)
-    postgres_manager = PostgresManager(POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, "test-db")
-    proteus_manager = ProteusManager(PROTEUS_URL, PROTEUS_USER, PROTEUS_PASSWORD)
-    qal_manager = QALManager(QAL_ENDPOINT)
-    gcore_manager = GCoreManager(GCORE_ENDPOINT)
-    timeseries_manager = TimeSeriesManager(TIMESERIES_ENDPOINT, TIMESERIES_API_KEY)
 
-    with app.app_context():
-        graph = nx.read_gpickle("/data/input/graph/graph.gpickle")
-        clustered_graph = cluster_graph_hierarchical(graph, 2, "/data/output/graph/graph_plot.eps")
+##########################
+# Hierarchical Graph Vis #
+##########################
+@app.post('/gcore/graphs',
+          response_model=GraphCatalog,
+          summary="List Available Graphs",
+          tags=["GCore"])
+async def gcore_list_graphs():
+    """
+    Get all graphs available in the GCore system.
+    """
+    return await gcore_manager.get_available_graphs()
 
-        with open(f'/data/output/graph/graph_hierarchy.json', 'w') as outfile:
-            json.dump(clustered_graph["hierarchical"], outfile, indent=2)
 
-        with open(f'/data/output/graph/graph_nodelink.json', 'w') as outfile:
-            json.dump(clustered_graph["nodelink"], outfile, indent=2)
+@app.post('/gcore/graphvis/init',
+          response_model=GraphClusteredLevel,
+          summary="Initialize GraphVis Session",
+          tags=["GCore"])
+async def gcore_graphvis_init(payload: GraphInitPayload):
+    """
+    Initialize a new hierarchical graph session with the given parameters. If everything goes well,
+    the response contains a transaction ID, that can later be used to reference this session.
+    """
+    return await gcore_manager.hierarchical_graph_init(payload)
 
-    @app.route('/', methods=['POST'])
-    def index():
-        return ''
 
-    # # @TS: This will be replaced by SHINER from TU/e
-    @app.route('/graph', methods=['POST'])
-    def graph_route():
-        return clustered_graph["hierarchical"]
+@app.post('/gcore/graphvis/cluster',
+          response_model=GraphClusteredLevel,
+          summary="Expand GraphVis Cluster",
+          tags=["GCore"])
+async def gcore_graphvis_cluster(payload: GraphClusterPayload):
+    """
+    Retrieve inner clusters from a hierarchical graph session.
+    """
+    return await gcore_manager.hierarchical_graph_cluster(payload)
 
-    @app.route('/gcore/graphs', methods=['POST'])
-    def gcore_list_graphs():
-        return gcore_manager.get_available_graphs()
 
-    @app.route('/gcore/graphvis/init', methods=['POST'])
-    # @cache.cached(make_cache_key=make_cache_key)
-    def gcore_graphvis_init():
-        args = request.json
+###########################
+# Proteus / Relational DB #
+###########################
+@app.post('/relational/schema',
+          response_model=RelationalSchemaCatalog,
+          summary="Get Schema Information",
+          tags=["Relational"])
+async def schema_route(payload: RelationalSchemaPayload):
+    """
+    Get formatted schema information for a relational database connection.
+    """
+    db_manager = proteus_manager if payload.proteus else postgres_manager
+    return await db_manager.query_schema(payload.tables)
 
-        records = gcore_manager.hierarchical_graph_init(args)
 
-        return records
+@app.post('/relational/table',
+          response_model=RelationalTable,
+          summary="Get Table Content",
+          tags=["Relational"])
+async def table_route(payload: RelationalTablePayload):
+    """
+    Retrieve the content from a relational database table.
+    """
+    db_manager = proteus_manager if payload.proteus else postgres_manager
+    df = await db_manager.query_table(payload.table, payload.columns, payload.max_rows)
+    return df.to_dict(orient="records")
 
-    # Renamed from /tables to /schema to avoid confusion
-    @app.route('/schema', methods=['POST'])
-    @cache.cached(key_prefix=make_cache_key)
-    def schema_route():
-        args = request.json
 
-        if "proteus" in args and args["proteus"]:
-            db_manager = proteus_manager
-        else:
-            db_manager = postgres_manager
+@app.post('/relational/table/transform',
+          response_model=RelationalTableTransformed,
+          summary="Get Transformed Table Content",
+          tags=["Relational"])
+async def table_transform_route(payload: RelationalTableTransformPayload):
+    """
+    Retrieve the content from a relational database table and apply the given transformations to it.
+    """
+    db_manager = proteus_manager if payload.proteus else postgres_manager
 
-        schema = db_manager.query_schema(args["tables"] if "tables" in args else None)
-        return json.dumps(schema)
+    rows = await db_manager.query_table(payload.table, payload.columns, payload.max_rows)
+    df = await transform(rows, payload.transform)
 
-    # Renamed from /column to /table to avoid confusion
-    @app.route('/table', methods=['POST'])
-    @cache.cached(key_prefix=make_cache_key)
-    def table_route():
-        args = request.json
+    return df.to_dict(orient="records")
 
-        if "proteus" in args and args["proteus"]:
-            db_manager = proteus_manager
-        else:
-            db_manager = postgres_manager
 
-        if "table" in args:
-            df = db_manager.query_table(
-                args["table"],
-                args["columns"] if "columns" in args else None,
-                args["maxRows"] if "maxRows" in args else None)
-        else:
-            raise KeyError("Key 'table' missing in query JSON.")
+######################################
+# Approximate Query Processing (QAL) #
+######################################
+# TODO @TS: Response model
+@app.post('/qal',
+          summary="Get Approximate Results",
+          tags=["QAL"])
+async def qal_route(payload: QALPayload):
+    """
+    Retrieve approximate results for a given operation.
+    """
+    return await qal_manager.query(payload.table, payload.op)
 
-        return df.to_json(orient="records")
 
-    @app.route('/table/transform', methods=['POST'])
-    @cache.cached(key_prefix=make_cache_key)
-    def table_transform_route():
-        args = request.json
+#####################
+# Similarity Search #
+#####################
+@app.post('/simsearch/columns',
+          response_model=SimsearchColumns,
+          summary="List Available Columns",
+          tags=["SimSearch"])
+async def get_all_simsearch_columns():
+    """
+    Get information on the queryable columns.
+    """
+    return await simsearch_manager.get_available_columns()
 
-        if "proteus" in args and args["proteus"]:
-            db_manager = proteus_manager
-        else:
-            db_manager = postgres_manager
 
-        if "table" in args and "transform" in args:
-            rows = db_manager.query_table(
-                args["table"],
-                args["columns"] if "columns" in args else None,
-                args["maxRows"] if "maxRows" in args else None)
+@app.post('/simsearch',
+          response_model=SimilarityGraphs,
+          summary="Execute Search",
+          tags=["SimSearch"])
+async def simsearch_route(payload: SimsearchSearchPayload):
+    """
+    Execute a similarity search with the given parameters.
+    """
+    return await simsearch_manager.handle_request(payload)
 
-            df = transform(rows, args["transform"])
-        else:
-            raise KeyError("Key 'table' or 'transform' missing in query JSON.")
 
-        return df.to_json(orient="records")
+#####################
+# Time Series Graph #
+#####################
+@app.post('/timeseries/catalog-search',
+          response_model=TimeseriesCatalog,
+          summary="List Available Time-Series",
+          tags=["Time-Series"])
+async def timeseries_catalog_search(payload: TimeseriesCatalogSearchPayload):
+    """
+    Search the catalog of all available time series for a given substring.
+    """
+    return await timeseries_manager.catalog_search(payload.filter_str, payload.limit)
 
-    @app.route('/qal', methods=['POST'])
-    @cache.cached(key_prefix=make_cache_key)
-    def qal_route():
-        args = request.json
 
-        if "table" in args and "op" in args:
-            result = qal_manager.query(args["table"],
-                                       args["op"])
-        else:
-            raise KeyError("Key 'table' or 'op' missing in query JSON.")
-
-        return json.dumps(result)
-
-    @app.route('/simsearch', methods=['POST'])
-    @cache.cached(key_prefix=make_cache_key)
-    def simsearch_route():
-        args = request.json
-
-        result = simsearch_manager.handle_request(args)
-
-        # Trying to force content-encoding=identity
-        response = make_response(result)
-        response.headers['content-encoding'] = 'identity'
-        return response
-
-        # return result
-
-    @app.route('/simsearch/columns', methods=['GET'])
-    def get_all_simsearch_columns():
-        cols = []
-        # removes duplicate columns with different similarity operations for now
-        for c in simsearch_manager.all_columns:
-            # if c['column'] not in [d['column'] for d in cols]:
-            if c['operation'] != 'pivot_based':
-                cols.append(c)
-        return json.dumps(cols)
-
-    @app.route('/timeseries/catalog-search', methods=['POST'])
-    def timeseries_catalog_search():
-        payload = request.get_json()
-
-        try:
-            filter_str = payload['filterStr']
-            limit = payload.get('limit', 10)
-
-            return jsonify(timeseries_manager.catalog_search(filter_str, limit))
-        except Exception as e:
-            return jsonify(exception_to_success_message(e, app.debug))
-
-    @app.route('/timeseries/correlate', methods=['POST'])
-    def timeseries_correlate():
-        payload = request.get_json()
-
-        try:
-            payload_translated = {
-                "data": payload['timeseries'],
-                "start": payload['start'],
-                "window_size": payload['windowSize'],
-                "step_size": payload['stepSize'],
-                "steps": payload['steps'],
-                "correlation_method": payload['correlationMethod'],
-                "locale": payload.get("locale", None)
-            }
-
-            return jsonify(timeseries_manager.correlate(payload_translated))
-        except Exception as e:
-            return jsonify(exception_to_success_message(e, app.debug))
-
-    #
-    # @app.route('/timeseries/allcompanies', methods=['GET'])
-    # @cache.cached(make_cache_key=make_cache_key)
-    # def get_all_companies():
-    #     args = request.json
-    #     print("getting all comps", flush=True)
-    #     return timeseries_manager.getAllCompanies(args)
-
-    return app
+@app.post('/timeseries/correlate',
+          response_model=CorrelationResponse,
+          summary="Get Time-Series Correlation",
+          tags=["Time-Series"])
+async def timeseries_correlate(payload: TimeseriesCorrelatePayload):
+    """
+    Compute the correlation of two or more time series with the given parameters.
+    """
+    return await timeseries_manager.correlate(payload)
 
 
 def main(args):
@@ -260,17 +254,12 @@ def main(args):
 
     args = parser.parse_args(args)
 
-    app = make_flask_app()
-    CORS(app)
-
     if args.dev:
-        app.debug = True
         print(f"Serving on port {args.port} in development mode.")
-        app.run(port=args.port, host='0.0.0.0', threaded=True)
+        uvicorn.run("app:app", host="0.0.0.0", port=args.port, reload=True, access_log=False, workers=8)
     else:
-        http_server = WSGIServer(('0.0.0.0', args.port), app, log=sys.stdout)
-        print(f"Serving on port {args.port} in WSGI server mode.")
-        http_server.serve_forever()
+        print(f"Serving on port {args.port} in live mode.")
+        uvicorn.run("app:app", host="0.0.0.0", port=args.port, reload=False, access_log=False, workers=8)
 
 
 if __name__ == "__main__":

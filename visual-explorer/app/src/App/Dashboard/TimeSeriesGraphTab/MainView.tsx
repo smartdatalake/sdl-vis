@@ -5,10 +5,8 @@ import VisualizationPanel from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPa
 import BackendQueryEngine from 'backend/BackendQueryEngine';
 import { TimeSeriesGraphSettings } from 'types/TimeSeriesGraph/TimeSeriesGraphSettings';
 import { useState } from 'react';
-import {
-    constructTSCorrelationGraph,
-    TimeSeriesCorrelationGraph,
-} from 'types/TimeSeriesGraph/TimeSeriesCorrelationGraph';
+import { CorrelationResponse } from 'types/TimeSeriesGraph/CorrelationResponse';
+import { DEFAULT_CORRELATION_RESPONSE } from 'App/Dashboard/TimeSeriesGraphTab/DEBUG_DefaultCorrelationResponse';
 
 const MainViewContainer = styled.div`
     background-color: #eee;
@@ -29,22 +27,24 @@ const HorizontalContainer = styled.div`
 interface Props {}
 
 const MainView: React.FunctionComponent<Props> = (props: Props) => {
-    const [tsCorrelationGraph, setTsCorrelationGraph] = useState<TimeSeriesCorrelationGraph>();
+    const [correlations, setCorrelations] = useState<CorrelationResponse>(DEFAULT_CORRELATION_RESPONSE);
 
     const onSettingsApply = (s: TimeSeriesGraphSettings) => {
-        BackendQueryEngine.timeseriesCorrelation(s).then((correlationResponse) => {
-            console.log(correlationResponse);
-            correlationResponse.correlations[0].set([0, 0], NaN);
-            setTsCorrelationGraph(constructTSCorrelationGraph(correlationResponse));
-        });
+        BackendQueryEngine.timeseriesCorrelation(s).then(
+            (correlationResponse) => {
+                setCorrelations(correlationResponse);
+            },
+            (reason) => {
+                console.error(reason);
+            }
+        );
     };
 
     return (
         <MainViewContainer>
             <HorizontalContainer>
                 <SettingsPanel onSettingsApply={onSettingsApply} />
-                {tsCorrelationGraph && <VisualizationPanel correlationGraph={tsCorrelationGraph} />}
-                {/*<RightPanel />*/}
+                {correlations && <VisualizationPanel correlations={correlations} />}
             </HorizontalContainer>
         </MainViewContainer>
     );

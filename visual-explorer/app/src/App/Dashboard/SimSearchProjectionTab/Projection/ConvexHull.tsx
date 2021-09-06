@@ -1,13 +1,14 @@
 import React from 'react';
-import { curveBasisClosed, line, polygonHull, ScaleLinear } from 'd3';
-import { Node } from './ProjectionSVG';
-// import 'js-clipper';
 import Shape, { Point } from '@doodle3d/clipper-js';
 import { hsl } from 'd3-color';
 import { mean } from 'd3-array';
+import { ScaleLinear } from 'd3-scale';
+import { curveBasisClosed, line } from 'd3-shape';
+import { polygonHull } from 'd3-polygon';
+import { SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
 
 interface IConvexHullProps {
-    points: Node[];
+    points: SimilarityGraphNode[];
     xScale: ScaleLinear<number, number>;
     yScale: ScaleLinear<number, number>;
 }
@@ -17,7 +18,7 @@ const ConvexHull = (props: IConvexHullProps) => {
 
     // k needs to be known
     const kArr = Array.from(new Set(props.points.map((o) => o.cluster)));
-    const hullPoints: Node[][] = [];
+    const hullPoints: SimilarityGraphNode[][] = [];
     kArr.forEach((k) => {
         hullPoints.push(props.points.filter((p) => p.cluster === k));
     });

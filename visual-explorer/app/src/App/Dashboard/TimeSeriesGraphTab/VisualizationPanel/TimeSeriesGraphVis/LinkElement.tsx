@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Text } from '@visx/text';
 import { TimeSeriesCorrelationGraphLink } from 'types/TimeSeriesGraph/TimeSeriesCorrelationGraph';
+import { TimeSeriesContext } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesContext';
 
 const TEXT_BOX_PADDING = 5;
 
@@ -9,6 +10,7 @@ interface Props {
 }
 
 const LinkElement: React.FunctionComponent<Props> = ({ link }: Props) => {
+    const { linkColorScale } = React.useContext(TimeSeriesContext);
     const [textRef, setTextRef] = useState<SVGSVGElement | null>(null);
 
     const textBBox = textRef?.getBBox();
@@ -21,7 +23,8 @@ const LinkElement: React.FunctionComponent<Props> = ({ link }: Props) => {
                 x2={link.target.x}
                 y2={link.target.y}
                 style={{
-                    stroke: `rgba(52, 58, 64, ${link.weight * link.weight})`,
+                    // stroke: `rgba(52, 58, 64, ${link.weight * link.weight})`,
+                    stroke: linkColorScale(link.weight),
                     strokeWidth: link.weight * link.weight * 5,
                 }}
             />

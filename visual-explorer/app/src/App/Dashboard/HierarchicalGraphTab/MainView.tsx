@@ -2,9 +2,9 @@ import * as React from 'react';
 import styled from 'styled-components';
 import SettingsPanel from 'App/Dashboard/HierarchicalGraphTab/SettingsPanel/SettingsPanel';
 import { GraphSettings } from 'types/GCoreHierachicalGraph/GraphSettings';
-import { DataArray } from 'types/DataArray';
 import BackendQueryEngine from 'backend/BackendQueryEngine';
 import HierachicalGraphVisSVG from 'App/Dashboard/HierarchicalGraphTab/VisualizationPanel/HierachicalGraphVisSVG';
+import { HierarchicalGraphLevel } from 'types/HierarchicalGraphLevel';
 
 const MainViewContainer = styled.div`
     background-color: #eee;
@@ -26,7 +26,7 @@ interface Props {}
 
 const MainView: React.FunctionComponent<Props> = (props: Props) => {
     const [graphSettings, setGraphSettings] = React.useState<GraphSettings>();
-    const [graphData, setGraphData] = React.useState<DataArray>();
+    const [graphData, setGraphData] = React.useState<HierarchicalGraphLevel>();
 
     React.useEffect(() => {
         if (graphSettings !== undefined) {
@@ -40,7 +40,7 @@ const MainView: React.FunctionComponent<Props> = (props: Props) => {
         <MainViewContainer>
             <HorizontalContainer>
                 <SettingsPanel applySettings={setGraphSettings} />
-                {graphData && <HierachicalGraphVisSVG graphData={graphData} />}
+                {graphData && <HierachicalGraphVisSVG key={graphData.transactionId} graphData={graphData} />}
             </HorizontalContainer>
         </MainViewContainer>
     );

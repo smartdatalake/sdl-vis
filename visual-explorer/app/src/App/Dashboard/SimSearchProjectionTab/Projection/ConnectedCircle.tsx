@@ -1,7 +1,8 @@
-import { ScaleLinear } from 'd3';
 import React from 'react';
 import { Transition } from 'react-transition-group';
-import { ColoredNode, duration, Node, opaque, rootCircleRadius, stroke } from './ProjectionSVG';
+import { ColoredNode, duration, opaque, rootCircleRadius, stroke } from './ProjectionSVG';
+import { ScaleLinear } from 'd3-scale';
+import { SimilarityGraphNode } from 'types/SimSearch/SimilarityGraph';
 
 const largeRadius = 5;
 
@@ -27,7 +28,7 @@ const ConnectedCircle = ({
 }: {
     attributeToPreview?: string;
     nodesToPreview: ColoredNode[];
-    node?: Node;
+    node?: SimilarityGraphNode;
     xScale: ScaleLinear<number, number>;
     yScale: ScaleLinear<number, number>;
 }) => (

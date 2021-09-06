@@ -1,36 +1,22 @@
+import asyncio
 import hashlib
 import json
 import sys
+import uuid
 from datetime import datetime, timedelta
-from typing import List, Optional, Tuple, Union, Dict
+from typing import Tuple, Union
 
+import aiohttp
 import numpy as np
-
-from tools import cache
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
 import requests
 
+from pydantic_models.requests.timeseries_correlate_payload import TimeseriesCorrelatePayload
+from redis_tools import cached, hash_args
+from tools.helpers import exception_to_status_message
 
-class CorrelateParameters(TypedDict):
-    data: List[str]
-    start: int
-    window_size: int
-    step_size: int
-    steps: int
-    correlation_method: str
-    locale: Optional[str]
-    api_key: Optional[str]
-
-
-class TSCatalogEntry(TypedDict):
-    numDatapoints: int
-    startDate: str
-    endDate: str
+# Can be used to generate different cache keys on every application startup
+# by prepending it to the function args passed to key_builder.
+run_id = str(uuid.uuid4())
 
 
 def correlate_make_cache_key(*args, **_):
@@ -44,102 +30,141 @@ class TimeSeriesManager:
         self.__endpoint = endpoint
         self.__api_key = api_key
 
-        self.__ts_catalog: Dict[str, TSCatalogEntry] = self._get_available_timeseries()
-        print(self.__ts_catalog)
-
-    def catalog_search(self, filter_str: str, limit: int):
+    async def catalog_search(self, filter_str: str, limit: int):
         def filter_fn(list_item: Tuple[str, dict]):
             return list_item[0].startswith(filter_str)
 
-        return dict(list(filter(filter_fn, self.__ts_catalog.items()))[:limit])
+        ts_catalog = await self.get_available_timeseries()
 
-    @cache.cached(timeout=604800, make_cache_key=lambda *_, **__: "c2d372b5")
-    def _get_available_timeseries(self):
-        r = requests.get(self.__endpoint + "/catalog")
+        return dict(list(filter(filter_fn, ts_catalog.items()))[:limit])
 
-        if r.ok:
-            content = json.loads(r.content)
+    @cached(alias="default", key_builder=lambda fn, *args, **kwargs: "f7f34951_" + hash_args((run_id,) + args[1:]))
+    async def get_available_timeseries(self):
+        try:
+            r = requests.get(self.__endpoint + "/catalog", timeout=10)
 
-            # Result format:
-            # {
-            #     "filename_length_start_end": [
-            #         {
-            #             "EU- Corn Future_0011B1.txt": {
-            #                 "length": 1531,
-            #                 "start": "03-30-2013",
-            #                 "end": "07-12-2019"
-            #             }
-            #         },
-            #         ...
-            #     ]
-            # }
-            #
-            # Transform this to key-value store:
-            # {
-            #     "EU- Corn Future_0011B1.txt": {
-            #         "length": 1531,
-            #         "start": "03-30-2013",
-            #         "end": "07-12-2019"
-            #     },
-            #     ...
-            # }
+            if r.ok:
+                content = json.loads(r.content)
 
-            result = {}
-            for ts_record in content["filename_length_start_end"]:
-                for key, value in ts_record.items():
-                    result[key] = {
-                        "numDatapoints": value["length"],
-                        "startDate": to_iso(value["start"]),
-                        "endDate": to_iso(value["end"])
+                # Result format:
+                # {
+                #     "filename_length_start_end": [
+                #         {
+                #             "EU- Corn Future_0011B1.txt": {
+                #                 "length": 1531,
+                #                 "start": "03-30-2013",
+                #                 "end": "07-12-2019"
+                #             }
+                #         },
+                #         ...
+                #     ]
+                # }
+                #
+                # Transform this to key-value store:
+                # {
+                #     "EU- Corn Future_0011B1.txt": {
+                #         "length": 1531,
+                #         "start": "03-30-2013",
+                #         "end": "07-12-2019"
+                #     },
+                #     ...
+                # }
+
+                result = {}
+                # # OLD FORMAT (List of Dicts)
+                # for ts_record in content["filename_length_start_end"]:
+                #     for key, value in ts_record.items():
+                #         result[key] = {
+                #             "numDatapoints": value["length"],
+                #             "startDate": to_iso(value["start"]),
+                #             "endDate": to_iso(value["end"])
+                #         }
+                # NEW FORMAT (List of Tuples)
+                for ts_tuple in content["filename_length_start_end"]:
+                    result[ts_tuple[0]] = {
+                        "numDatapoints": ts_tuple[1],
+                        "startDate": to_iso(ts_tuple[2], '%m-%d-%Y'),
+                        "endDate": to_iso(ts_tuple[3], '%m-%d-%Y')
                     }
 
-            return result
+                return result
+        except Exception as e:
+            print(exception_to_status_message(e), file=sys.stderr)
 
-        return None
+        return {}
 
     # @cache.cached(timeout=604800, make_cache_key=correlate_make_cache_key)
-    def correlate(self, correlate_parameters: CorrelateParameters):
-        correlate_parameters["api_key"] = self.__api_key
+    async def correlate(self, payload: TimeseriesCorrelatePayload):
+        # Translate to request format and attach additional information
+        correlate_parameters = {
+            "api_key": self.__api_key,
+            "data": payload.timeseries,
+            "start": payload.start,
+            "window_size": payload.window_size,
+            "step_size": payload.step_size,
+            "steps": payload.steps,
+            "correlation_method": payload.correlation_method,
+            "stocks_format": False,
+            "locale": payload.locale
+        }
+
         data = json.dumps(correlate_parameters)
-        r = requests.post(self.__endpoint + "/correlate", data=data, headers={'Content-Type': 'application/json'})
 
-        if r.ok:
-            content = json.loads(r.content)
+        try:
+            r = requests.post(self.__endpoint + "/correlate", data=data, headers={'Content-Type': 'application/json'})
 
-            correlations = list(map(lambda c: np.array(c, dtype=float), content["correlations"]))
-            correlations_no_nan = list(map(lambda c: np.where(np.isnan(c), None, c), correlations))
+            if r.ok:
+                content = json.loads(r.content)
 
-            mean_correlation = np.nanmean(correlations, axis=0, dtype=float)
-            mean_correlation_no_nan = np.where(np.isnan(mean_correlation), None, mean_correlation)
+                correlations = list(map(lambda c: np.array(c, dtype=float), content["correlations"]))
+                correlations_no_nan = list(map(lambda c: np.where(np.isnan(c), None, c), correlations))
 
-            mean_abs_correlation = np.nanmean(np.abs(correlations), axis=0, dtype=float)
-            mean_abs_correlation_no_nan = np.where(np.isnan(mean_abs_correlation), None, mean_abs_correlation)
+                mean_correlation = np.nanmean(correlations, axis=0, dtype=float)
+                mean_correlation_no_nan = np.where(np.isnan(mean_correlation), None, mean_correlation)
 
-            # After getting correlations, also get the raw values in the specified interval
+                mean_abs_correlation = np.nanmean(np.abs(correlations), axis=0, dtype=float)
+                mean_abs_correlation_no_nan = np.where(np.isnan(mean_abs_correlation), None, mean_abs_correlation)
 
-            result = {
-                "timeseries": [{"tsName": ts_name, **self.__ts_catalog[ts_name]} for ts_name in
-                               correlate_parameters["data"]],
-                "correlations": list(map(lambda c: c.tolist(), correlations_no_nan)),
-                "meanCorrelation": mean_correlation_no_nan.tolist(),
-                "meanAbsCorrelation": mean_abs_correlation_no_nan.tolist(),
-            }
+                ts_catalog = await self.get_available_timeseries()
 
-            for ts in result["timeseries"]:
-                ts["rawDatapoints"] = self.raw_datapoints(ts["tsName"], correlate_parameters['start'],
-                                                          correlate_parameters['start'] + correlate_parameters['steps'])
+                result = {
+                    "timeseries": [{"tsName": ts_name, **ts_catalog[ts_name]} for ts_name in
+                                   correlate_parameters["data"]],
+                    "correlations": list(map(lambda c: c.tolist(), correlations_no_nan)),
+                    "meanCorrelation": mean_correlation_no_nan.tolist(),
+                    "meanAbsCorrelation": mean_abs_correlation_no_nan.tolist(),
+                }
 
-            return result
+                # After getting correlations, also get the raw values in the specified interval
+                async with aiohttp.ClientSession() as session:
+                    res = await asyncio.gather(*[self._raw_datapoints(
+                        session,
+                        ts_catalog,
+                        ts["tsName"],
+                        correlate_parameters['start'],
+                        correlate_parameters['start'] + correlate_parameters[
+                            'steps']) for ts in result["timeseries"]])
+
+                for ts, raw_datapoints in zip(result["timeseries"], res):
+                    ts["rawDatapoints"] = raw_datapoints
+
+                return result
+            else:
+                r.raise_for_status()
+
+        except Exception as e:
+            print(f"{type(e).__name__} while querying correlation for time-series '{payload.timeseries}': {e}")
 
         return None
 
-    def raw_datapoints(self, ts_name: str, start: Union[int, str, datetime],
-                       end: Union[int, str, datetime]) -> Optional[List[float]]:
+    async def _raw_datapoints(self, session: aiohttp.ClientSession, ts_catalog, ts_name: str,
+                              start: Union[int, str, datetime],
+                              end: Union[int, str, datetime]):
 
         # Convert an int giving the offset from the TS start to an ISO date string
         if type(start) == int and type(end) == int:
-            start = (datetime.fromisoformat(self.__ts_catalog[ts_name]["startDate"]) + timedelta(start)).isoformat()
-            end = (datetime.fromisoformat(self.__ts_catalog[ts_name]['startDate']) + timedelta(end)).isoformat()
+            start = (datetime.fromisoformat(ts_catalog[ts_name]["startDate"]) + timedelta(start)).isoformat()
+            end = (datetime.fromisoformat(ts_catalog[ts_name]['startDate']) + timedelta(end)).isoformat()
         # Convert a datetime object to an ISO date string
         elif type(start) == datetime and type(end) == datetime:
             start = start.isoformat()
@@ -148,32 +173,42 @@ class TimeSeriesManager:
         else:
             pass
 
-        print("start, end", start, end)
-
         raw_datapoints_parameters = {
             "api_key": self.__api_key,
             "path": ts_name,
-            "start": from_iso(start),
-            "end": from_iso(end)
+            "start": from_iso(start, "%Y-%m-%d"),
+            "end": from_iso(end, "%Y-%m-%d")
         }
 
-        print("raw_datapoints_parameters", raw_datapoints_parameters)
+        print("Querying raw datapoints for time-series '" + ts_name + "'.")
+        try:
+            url = self.__endpoint + "/getData"
+            data = json.dumps(raw_datapoints_parameters)
 
-        data = json.dumps(raw_datapoints_parameters)
-        r = requests.post(self.__endpoint + "/getData", data=data, headers={'Content-Type': 'application/json'})
+            print("raw_datapoints/request", json.dumps(raw_datapoints_parameters, indent=4))
 
-        if r.ok:
-            content = json.loads(r.content)
-            return content["data"]
+            async with session.post(url=url, data=data,
+                                    headers={'Content-Type': 'application/json'}) as raw_datapoints_response:
+                if raw_datapoints_response.ok:
+                    raw_datapoints = await raw_datapoints_response.json()
 
-        return None
+                    print("raw_datapoints/response", raw_datapoints)
+
+                    return [{"date": to_iso(date, "%Y-%m-%d"), "value": value} for value, date in
+                            zip(raw_datapoints["data"], raw_datapoints["dates"])]
+                else:
+                    raw_datapoints_response.raise_for_status()
+        except Exception as e:
+            print(f"{type(e).__name__} while querying raw datapoints for time-series '{ts_name}': {e}")
+
+        return []
 
 
-def to_iso(date_str: str):
-    date = datetime.strptime(date_str, '%m-%d-%Y')
+def to_iso(date_str: str, format_str: str):
+    date = datetime.strptime(date_str, format_str)
     return date.isoformat()
 
 
-def from_iso(date_str: str):
+def from_iso(date_str: str, format_str: str):
     date = datetime.fromisoformat(date_str)
-    return date.strftime("%m-%d-%Y")
+    return date.strftime(format_str)
