@@ -32,6 +32,7 @@ const MainView: React.FunctionComponent<Props> = (props: Props) => {
     const onSettingsApply = (s: TimeSeriesGraphSettings) => {
         BackendQueryEngine.timeseriesCorrelation(s).then(
             (correlationResponse) => {
+                console.log(correlationResponse);
                 setCorrelations(correlationResponse);
             },
             (reason) => {
@@ -44,7 +45,7 @@ const MainView: React.FunctionComponent<Props> = (props: Props) => {
         <MainViewContainer>
             <HorizontalContainer>
                 <SettingsPanel onSettingsApply={onSettingsApply} />
-                {correlations && <VisualizationPanel correlations={correlations} />}
+                {correlations && <VisualizationPanel key={Math.random()} correlations={correlations} />}
             </HorizontalContainer>
         </MainViewContainer>
     );

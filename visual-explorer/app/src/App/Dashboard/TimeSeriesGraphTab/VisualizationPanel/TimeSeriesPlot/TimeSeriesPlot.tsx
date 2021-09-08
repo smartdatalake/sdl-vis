@@ -6,11 +6,12 @@ import { Margin } from 'types/Margin';
 import { getNumberFormatter } from 'tools/helpers';
 import 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesPlot/TimeSeriesPlot.scss';
 import { tsArrayReducer } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesPlot/ts-reducer';
-import { CorrelationTimeSeriesEntry, TimePoint } from 'types/TimeSeriesGraph/CorrelationResponse';
+import { CorrelationResponse, TimePoint } from 'types/TimeSeriesGraph/CorrelationResponse';
 import PlotLine from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesPlot/StockLine';
 import { Text } from '@visx/text';
 import styled from 'styled-components';
-import { TimeSeriesContext } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesContext';
+import { ColorScaleContext } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/ColorScaleContext';
+import CorrelationAreas from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesPlot/CorrelationAreas';
 
 const DEFAULT_MARGIN: Margin = { top: 10, right: 25, bottom: 35, left: 45 };
 
@@ -20,27 +21,38 @@ const StockLabelText = styled(Text)`
 `;
 
 interface Props {
-    tsArray: CorrelationTimeSeriesEntry[];
+    correlations: CorrelationResponse;
     width: number;
     height: number;
     margin?: Margin;
 }
 
-const TimeSeriesPlot: React.FunctionComponent<Props> = ({ tsArray, width, height, margin = DEFAULT_MARGIN }: Props) => {
-    const { nodeColorScale } = useContext(TimeSeriesContext);
+const TimeSeriesPlot: React.FunctionComponent<Props> = ({
+    correlations,
+    width,
+    height,
+    margin = DEFAULT_MARGIN,
+}: Props) => {
+    const { nodeColorScale } = useContext(ColorScaleContext);
 
-    const timeAccessor = (tp: TimePoint) => tp.date.valueOf();
-    const valueAccessor = (tp: TimePoint) => tp.value;
+    const timeAccessor = (tp: TimePoint) => tp?.date.valueOf() ?? 0;
+    const valueAccessor = (tp: TimePoint) => tp?.value ?? 0;
 
     const xMax = width - margin.left - margin.right;
     const yMax = height - margin.top - margin.bottom;
 
     const timeScale = scaleTime<number>({
-        domain: [tsArrayReducer(tsArray, timeAccessor, Math.min), tsArrayReducer(tsArray, timeAccessor, Math.max)],
+        domain: [
+            tsArrayReducer(correlations.timeseries, timeAccessor, Math.min),
+            tsArrayReducer(correlations.timeseries, timeAccessor, Math.max),
+        ],
         range: [0, xMax],
     });
     const valueScale = scaleTime<number>({
-        domain: [tsArrayReducer(tsArray, valueAccessor, Math.min), tsArrayReducer(tsArray, valueAccessor, Math.max)],
+        domain: [
+            tsArrayReducer(correlations.timeseries, valueAccessor, Math.min),
+            tsArrayReducer(correlations.timeseries, valueAccessor, Math.max),
+        ],
         range: [yMax, 0],
     });
 
@@ -67,11 +79,16 @@ const TimeSeriesPlot: React.FunctionComponent<Props> = ({ tsArray, width, height
                 <Text x={xMax} y={yMax - 8} fill={'white'} fontSize={12} style={{ textAnchor: 'end' }}>
                     Date
                 </Text>
-                {tsArray.map((ts) => {
+                <CorrelationAreas
+                    correlations={correlations}
+                    xAcc={(tp: TimePoint) => timeScale(timeAccessor(tp)) ?? 0}
+                    yAcc={(tp: TimePoint) => valueScale(valueAccessor(tp)) ?? 0}
+                />
+                {correlations.timeseries.map((ts) => {
                     const lastTp = ts.rawDatapoints.slice(-1)[0];
 
                     return (
-                        <>
+                        <React.Fragment key={ts.tsName}>
                             <PlotLine
                                 key={ts.tsName}
                                 ts={ts}
@@ -85,7 +102,7 @@ const TimeSeriesPlot: React.FunctionComponent<Props> = ({ tsArray, width, height
                             >
                                 {ts.tsName}
                             </StockLabelText>
-                        </>
+                        </React.Fragment>
                     );
                 })}
             </Group>

@@ -1,8 +1,14 @@
 import sys
+from typing import Callable, Union
 
 import requests
+from fastapi import HTTPException
 
-from pydantic_models.requests.qal_payload import QALOp
+from pydantic_models.requests.qal_payload import BinningOp, ProfilingOp, QuantileOp, QALOp
+
+is_int: Callable[[Union[int, float]], bool] = lambda v: int(v) == v
+clamp: Callable[[int], int] = lambda v: min(100, max(0, v))
+percentage_to_int: Callable[[Union[float, int]], int] = lambda v: clamp(int(v) if is_int(v) else int(v * 100))
 
 
 class QALManager:
@@ -12,6 +18,10 @@ class QALManager:
         self._qal_endpoint = qal_endpoint
 
     async def query(self, table, op: QALOp):
+        # Make sure that confidence is int, otherwise QAL service breaks.
+        op.confidence = percentage_to_int(op.confidence)
+        op.error = percentage_to_int(op.error)
+
         if op.type == "binning":
             return self._binning(table, op)
 
@@ -23,7 +33,7 @@ class QALManager:
 
         return {}
 
-    def _binning(self, table, op: QALOp):
+    def _binning(self, table, op: BinningOp):
         table_profile = self._profiling(table, op)
         table_profile_filtered = list(filter(lambda f: f["name"] == op.field, table_profile))
 
@@ -38,23 +48,28 @@ class QALManager:
 
         return []
 
-    def _profiling(self, table, op: QALOp):
-        query = f"dataProfile {table} confidence {op.confidence} error {op.error}"
+    def _profiling(self, table, op: ProfilingOp):
+        query = f"dataprofile {table} confidence {op.confidence} error {op.error}"
         return self._execute_query(query)
 
-    def _quantile(self, table, op: QALOp):
+    def _quantile(self, table, op: QuantileOp):
         query = f"select quantile({op.field},{op.percentage}) from {table} confidence {op.confidence} error {op.error}"
         return self._execute_query(query)
 
     def _execute_query(self, query: str):
-        response = requests.get(self._qal_endpoint, params={"query": query})
-
         try:
+            response = requests.get(self._qal_endpoint, params={"query": query})
+
+            if not response.ok:
+                response.raise_for_status()
+
             python_obj = response.json()
 
             if isinstance(python_obj, list):
                 return python_obj
         except Exception as e:
-            print("[ERR] Error on processing of QAL response.", str(e), file=sys.stderr)
+            error_msg = f"Error in QAL request for query '{query}': {e}"
+            print("[ERR] " + error_msg, file=sys.stderr)
+            raise HTTPException(status_code=500, detail=error_msg)
 
         return []

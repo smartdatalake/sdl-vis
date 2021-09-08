@@ -8,10 +8,11 @@ import { LinkingAndBrushingContextProvider } from 'App/hooks/LinkingAndBrushingC
 import { scaleLinear, scaleOrdinal } from '@visx/scale';
 import { schemeTableau10 } from 'd3-scale-chromatic';
 import { useMemo, useState } from 'react';
-import { TimeSeriesContextProvider } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesContextProvider';
+import { ColorScaleContextProvider } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/ColorScaleContextProvider';
 import { bounds } from 'tools/helpers';
 import ToggleAbsoluteWeightsSwitch from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/ToggleAbsoluteWeightsSwitch';
 import { interpolateRdBkBl } from 'tools/color';
+import { SelectionContextProvider } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/SelectionContextProvider';
 
 const VerticalContainer = styled.div`
     display: flex;
@@ -45,15 +46,14 @@ const VisualizationPanel = ({ correlations }: Props) => {
     const [useAbsoluteCorrelations, switchHandler] = useAbsoluteCorrelationsSwitch();
 
     const correlationGraph = constructTSCorrelationGraph(correlations, useAbsoluteCorrelations);
-    const tsArray = correlations.timeseries;
 
     const nodeColorScale = useMemo(
         () =>
             scaleOrdinal({
-                domain: tsArray.map((ts) => ts.tsName),
+                domain: correlations.timeseries.map((ts) => ts.tsName),
                 range: [...schemeTableau10],
             }),
-        [tsArray]
+        [correlations]
     );
 
     const linkColorScale = useMemo(() => {
@@ -65,16 +65,18 @@ const VisualizationPanel = ({ correlations }: Props) => {
     return (
         <VerticalContainer>
             <LinkingAndBrushingContextProvider>
-                <TimeSeriesContextProvider nodeColorScale={nodeColorScale} linkColorScale={linkColorScale}>
-                    <TimeSeriesPlotSVG tsArray={tsArray} />
-                    <StyledHr />
-                    <div style={{ position: 'relative', height: '100%' }}>
-                        <div style={{ position: 'absolute', top: 20, left: 20 }}>
-                            <ToggleAbsoluteWeightsSwitch onToggleHandler={switchHandler} />
+                <SelectionContextProvider>
+                    <ColorScaleContextProvider nodeColorScale={nodeColorScale} linkColorScale={linkColorScale}>
+                        <TimeSeriesPlotSVG correlations={correlations} />
+                        <StyledHr />
+                        <div style={{ position: 'relative', height: '100%' }}>
+                            <div style={{ position: 'absolute', top: 20, left: 20 }}>
+                                <ToggleAbsoluteWeightsSwitch onToggleHandler={switchHandler} />
+                            </div>
+                            <TimeSeriesGraphVisSVG correlationGraph={correlationGraph} />
                         </div>
-                        <TimeSeriesGraphVisSVG correlationGraph={correlationGraph} />
-                    </div>
-                </TimeSeriesContextProvider>
+                    </ColorScaleContextProvider>
+                </SelectionContextProvider>
             </LinkingAndBrushingContextProvider>
         </VerticalContainer>
     );

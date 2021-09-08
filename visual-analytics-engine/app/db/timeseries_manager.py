@@ -4,7 +4,7 @@ import json
 import sys
 import uuid
 from datetime import datetime, timedelta
-from typing import Tuple, Union
+from typing import Tuple, Union, TypedDict, List, Optional
 
 import aiohttp
 import numpy as np
@@ -17,6 +17,18 @@ from tools.helpers import exception_to_status_message
 # Can be used to generate different cache keys on every application startup
 # by prepending it to the function args passed to key_builder.
 run_id = str(uuid.uuid4())
+
+
+class CorrelateParameters(TypedDict):
+    api_key: str
+    data: List[str]
+    start: int
+    window_size: int
+    step_size: int
+    steps: int
+    correlation_method: str
+    stocks_format: bool
+    locale: Optional[str]
 
 
 def correlate_make_cache_key(*args, **_):
@@ -93,25 +105,16 @@ class TimeSeriesManager:
 
         return {}
 
-    # @cache.cached(timeout=604800, make_cache_key=correlate_make_cache_key)
     async def correlate(self, payload: TimeseriesCorrelatePayload):
         # Translate to request format and attach additional information
-        correlate_parameters = {
-            "api_key": self.__api_key,
-            "data": payload.timeseries,
-            "start": payload.start,
-            "window_size": payload.window_size,
-            "step_size": payload.step_size,
-            "steps": payload.steps,
-            "correlation_method": payload.correlation_method,
-            "stocks_format": False,
-            "locale": payload.locale
-        }
-
-        data = json.dumps(correlate_parameters)
+        correlate_parameters: CorrelateParameters = dict(api_key=self.__api_key, data=payload.timeseries,
+                                                         start=payload.start, window_size=payload.window_size,
+                                                         step_size=payload.step_size, steps=payload.steps,
+                                                         correlation_method=payload.correlation_method,
+                                                         stocks_format=False, locale=payload.locale)
 
         try:
-            r = requests.post(self.__endpoint + "/correlate", data=data, headers={'Content-Type': 'application/json'})
+            r = await self._correlate_api_call(correlate_parameters)
 
             if r.ok:
                 content = json.loads(r.content)
@@ -137,7 +140,7 @@ class TimeSeriesManager:
 
                 # After getting correlations, also get the raw values in the specified interval
                 async with aiohttp.ClientSession() as session:
-                    res = await asyncio.gather(*[self._raw_datapoints(
+                    res = await asyncio.gather(*[self._raw_datapoints_api_call(
                         session,
                         ts_catalog,
                         ts["tsName"],
@@ -157,9 +160,15 @@ class TimeSeriesManager:
 
         return None
 
-    async def _raw_datapoints(self, session: aiohttp.ClientSession, ts_catalog, ts_name: str,
-                              start: Union[int, str, datetime],
-                              end: Union[int, str, datetime]):
+    @cached(alias="default", key_builder=lambda fn, *args, **kwargs: "7658e24e_" + hash_args(args[1:]))
+    async def _correlate_api_call(self, correlate_parameters: CorrelateParameters):
+        data = json.dumps(correlate_parameters)
+        return requests.post(self.__endpoint + "/correlate", data=data, headers={'Content-Type': 'application/json'})
+
+    @cached(alias="default", key_builder=lambda fn, *args, **kwargs: "7658e24e_" + hash_args(args[2:]))
+    async def _raw_datapoints_api_call(self, session: aiohttp.ClientSession, ts_catalog, ts_name: str,
+                                       start: Union[int, str, datetime],
+                                       end: Union[int, str, datetime]):
 
         # Convert an int giving the offset from the TS start to an ISO date string
         if type(start) == int and type(end) == int:
@@ -180,12 +189,12 @@ class TimeSeriesManager:
             "end": from_iso(end, "%Y-%m-%d")
         }
 
-        print("Querying raw datapoints for time-series '" + ts_name + "'.")
+        # print("Querying raw datapoints for time-series '" + ts_name + "'.")
         try:
             url = self.__endpoint + "/getData"
             data = json.dumps(raw_datapoints_parameters)
 
-            print("raw_datapoints/request", json.dumps(raw_datapoints_parameters, indent=4))
+            # print("raw_datapoints/request", json.dumps(raw_datapoints_parameters, indent=4))
 
             async with session.post(url=url, data=data,
                                     headers={'Content-Type': 'application/json'}) as raw_datapoints_response:

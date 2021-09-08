@@ -3,7 +3,7 @@ import ParentSize from '@visx/responsive/lib/components/ParentSize';
 import { Zoom } from '@visx/zoom';
 import styled from 'styled-components';
 import TimeSeriesPlot from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesPlot/TimeSeriesPlot';
-import { CorrelationTimeSeriesEntry } from 'types/TimeSeriesGraph/CorrelationResponse';
+import { CorrelationResponse } from 'types/TimeSeriesGraph/CorrelationResponse';
 
 const StyledSVG = styled.svg`
     flex-grow: 1;
@@ -27,7 +27,7 @@ const SCALE_PARAMS = {
 };
 
 interface Props {
-    tsArray: CorrelationTimeSeriesEntry[];
+    correlations: CorrelationResponse;
 }
 
 const TimeSeriesPlotSVG = (props: Props) => {

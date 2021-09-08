@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text } from '@visx/text';
 import { TimeSeriesCorrelationGraphLink } from 'types/TimeSeriesGraph/TimeSeriesCorrelationGraph';
-import { TimeSeriesContext } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesContext';
+import { ColorScaleContext } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/ColorScaleContext';
 
 const TEXT_BOX_PADDING = 5;
 
@@ -10,7 +10,7 @@ interface Props {
 }
 
 const LinkElement: React.FunctionComponent<Props> = ({ link }: Props) => {
-    const { linkColorScale } = React.useContext(TimeSeriesContext);
+    const { linkColorScale } = React.useContext(ColorScaleContext);
     const [textRef, setTextRef] = useState<SVGSVGElement | null>(null);
 
     const textBBox = textRef?.getBBox();

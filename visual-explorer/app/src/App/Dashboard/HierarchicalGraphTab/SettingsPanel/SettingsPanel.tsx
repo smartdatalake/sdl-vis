@@ -6,6 +6,7 @@ import BackendQueryEngine from 'backend/BackendQueryEngine';
 import { GCoreGraphCatalog } from 'types/GCoreHierachicalGraph/GCoreGraphCatalog';
 import produce from 'immer';
 import _ from 'lodash';
+import LoadingMessage from 'App/Dashboard/HierarchicalGraphTab/SettingsPanel/LoadingMessage';
 
 const ScrollContainer = styled.div`
     flex: 0 0 500px;
@@ -61,7 +62,7 @@ const SettingsPanel = (props: Props) => {
         return <SettingsPanelContent graphCatalog={graphCatalog} {...props} />;
     }
 
-    return <h4>No connection to backend.</h4>;
+    return <LoadingMessage />;
 };
 
 type ContentProps = Props & {

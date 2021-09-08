@@ -3,14 +3,14 @@ import { ScaleOrdinal } from 'd3-scale';
 import { scaleOrdinal } from '@visx/scale';
 import { interpolateSpectral } from 'd3-scale-chromatic';
 
-export interface ITimeSeriesContext {
+export interface IColorScaleContext {
     nodeColorScale: ScaleOrdinal<string, string>;
     linkColorScale: (t: number) => string;
 }
 
-const defaultContext: ITimeSeriesContext = {
+const defaultContext: IColorScaleContext = {
     nodeColorScale: scaleOrdinal(),
     linkColorScale: interpolateSpectral,
 };
 
-export const TimeSeriesContext = React.createContext(defaultContext);
+export const ColorScaleContext = React.createContext(defaultContext);

@@ -85,3 +85,9 @@ export function sortByEuclideanDistance<T extends { x: number; y: number }, U ex
         return d1 - d2;
     });
 }
+
+export function advanceDateByDays(date: Date, days: number) {
+    const dateNew = new Date(date.valueOf());
+    dateNew.setDate(dateNew.getDate() + days);
+    return dateNew;
+}

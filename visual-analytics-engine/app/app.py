@@ -4,7 +4,7 @@ import sys
 import warnings
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
@@ -13,7 +13,7 @@ from db.simsearch_manager import SimSearchManager
 from db.timeseries_manager import TimeSeriesManager
 from pydantic_models.requests.graph_cluster_payload import GraphClusterPayload
 from pydantic_models.requests.graph_init_payload import GraphInitPayload
-from pydantic_models.requests.qal_payload import QALPayload
+from pydantic_models.requests.qal_payload import QALPayload, qal_request_examples, qal_response_examples
 from pydantic_models.requests.relational_schema_payload import RelationalSchemaPayload
 from pydantic_models.requests.relational_table_payload import RelationalTablePayload
 from pydantic_models.requests.relational_table_transform_payload import RelationalTableTransformPayload
@@ -57,7 +57,7 @@ app = FastAPI(
     title="Visual Analytics Engine",
     description="""The computational backend of the visual analytics layer of the
                    [SmartDataLake](https://smartdatalake.eu/) project.""",
-    version="0.1.0",
+    version="0.1.1",
     contact={
         "name": "Thilo Spinner",
         "url": "https://www.vis.uni-konstanz.de/en/members/spinner",
@@ -186,9 +186,11 @@ async def table_transform_route(payload: RelationalTableTransformPayload):
 ######################################
 # TODO @TS: Response model
 @app.post('/qal',
+          response_model=RelationalTable,
           summary="Get Approximate Results",
-          tags=["QAL"])
-async def qal_route(payload: QALPayload):
+          tags=["QAL"],
+          responses=qal_response_examples)
+async def qal_route(payload: QALPayload = Body(..., examples=qal_request_examples)):
     """
     Retrieve approximate results for a given operation.
     """

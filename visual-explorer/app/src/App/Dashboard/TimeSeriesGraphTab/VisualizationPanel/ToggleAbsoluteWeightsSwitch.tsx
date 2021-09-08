@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Col, Container, Form, Row } from 'react-bootstrap';
 import styled from 'styled-components';
 
@@ -24,12 +24,18 @@ const StyledFormLabel = styled(Form.Label)`
 `;
 
 const ToggleAbsoluteWeightsSwitch: React.FunctionComponent<Props> = ({ onToggleHandler }: Props) => {
+    const [isChecked, setIsChecked] = useState(true);
+
     const onChangeHandler = useMemo(
         () => (e: React.ChangeEvent<HTMLInputElement>) => {
-            onToggleHandler && onToggleHandler(e.target.checked);
+            setIsChecked(e.target.checked);
         },
-        [onToggleHandler]
+        []
     );
+
+    useEffect(() => {
+        onToggleHandler && onToggleHandler(isChecked);
+    }, [isChecked, onToggleHandler]);
 
     return (
         <>
@@ -40,7 +46,7 @@ const ToggleAbsoluteWeightsSwitch: React.FunctionComponent<Props> = ({ onToggleH
                             <StyledFormLabel>Original Correlations</StyledFormLabel>
                         </StyledCol>
                         <StyledCol xs="auto">
-                            <Form.Switch id="switch-absolute-weights" onChange={onChangeHandler} />
+                            <Form.Switch id="switch-absolute-weights" onChange={onChangeHandler} checked={isChecked} />
                         </StyledCol>
                         <StyledCol xs="auto">
                             <StyledFormLabel>Absolute Correlations</StyledFormLabel>

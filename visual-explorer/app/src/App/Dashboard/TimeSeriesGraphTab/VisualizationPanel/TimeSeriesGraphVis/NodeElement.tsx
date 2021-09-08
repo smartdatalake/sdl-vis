@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { TimeSeriesCorrelationGraphNode } from 'types/TimeSeriesGraph/TimeSeriesCorrelationGraph';
 import { lightest } from 'tools/color';
 import { Text } from '@visx/text';
 import { useTooltipInPortal } from '@visx/tooltip';
 import { LinkingAndBrushingContext } from 'App/hooks/LinkingAndBrushingContext';
-import { TimeSeriesContext } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/TimeSeriesContext';
+import { ColorScaleContext } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/ColorScaleContext';
+import { SelectionContext } from 'App/Dashboard/TimeSeriesGraphTab/VisualizationPanel/SelectionContext';
 
 const TEXT_BOX_PADDING = 5;
 
@@ -14,7 +15,10 @@ interface Props {
 
 const NodeElement: React.FunctionComponent<Props> = ({ node }: Props) => {
     const { useLink, useBrush } = React.useContext(LinkingAndBrushingContext);
-    const { nodeColorScale } = React.useContext(TimeSeriesContext);
+    const { nodeColorScale } = React.useContext(ColorScaleContext);
+    const { isTimeseriesSelected, toggleTimeseriesSelection } = React.useContext(SelectionContext);
+
+    const isSelected = useMemo(() => isTimeseriesSelected(node.name), [node, isTimeseriesSelected]);
 
     const [textRef, setTextRef] = useState<SVGSVGElement | null>(null);
     const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
@@ -35,11 +39,19 @@ const NodeElement: React.FunctionComponent<Props> = ({ node }: Props) => {
 
     const hovered = hoverPos || linked;
 
+    const timeSeriesOnClickHandler = useCallback(
+        (e: React.MouseEvent<SVGElement>) => {
+            toggleTimeseriesSelection(node.name);
+        },
+        [node, toggleTimeseriesSelection]
+    );
+
     return (
         <g
             onMouseOver={(e) => setHoverPos({ x: e.pageX, y: e.clientY })}
             onMouseMove={(e) => setHoverPos({ x: e.pageX, y: e.clientY })}
             onMouseOut={() => setHoverPos(null)}
+            onClick={timeSeriesOnClickHandler}
         >
             <rect
                 rx={5}
@@ -50,7 +62,8 @@ const NodeElement: React.FunctionComponent<Props> = ({ node }: Props) => {
                 style={{
                     stroke: nodeColorScale(node.name),
                     fill: lightest(nodeColorScale(node.name)),
-                    strokeWidth: hovered ? 4 : 2,
+                    strokeWidth: isSelected ? 4 : 2,
+                    filter: hovered ? 'drop-shadow( 2px 2px 2px var(--gray))' : 'none',
                 }}
             />
             <Text
