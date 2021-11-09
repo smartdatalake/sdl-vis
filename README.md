@@ -1,8 +1,9 @@
 # The Visual Analytics Layer of SmartDataLake
 
-## Disclaimer
-
-This project is currently under development. Do not expect all functionalities to work without any issues!
+This repository contains the SDL-Vis implementation of the SmartDataLake project.
+It consists of two major components:
+1. The **Visual Explorer** provides an interactive web interface where the different visual analytics applications of SDL-Vis are implemented as tabs.
+2. The **Visual Analytics Engine** implements the backend functionality of SDL-Vis, interfacing between the mining components of the SmartDataLake pipeline and the visual frontend.
 
 ## Starting the Project
 
