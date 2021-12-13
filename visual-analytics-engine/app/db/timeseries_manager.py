@@ -53,7 +53,10 @@ class TimeSeriesManager:
     @cached(alias="default", key_builder=lambda fn, *args, **kwargs: "f7f34951_" + hash_args((run_id,) + args[1:]))
     async def get_available_timeseries(self):
         try:
-            r = requests.get(self.__endpoint + "/catalog", timeout=10)
+            r = requests.post(self.__endpoint + "/catalog",
+                              data=json.dumps({"api_key": self.__api_key}),
+                              headers={'Content-Type': 'application/json'},
+                              timeout=10)
 
             if r.ok:
                 content = json.loads(r.content)

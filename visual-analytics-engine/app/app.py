@@ -57,7 +57,7 @@ app = FastAPI(
     title="Visual Analytics Engine",
     description="""The computational backend of the visual analytics layer of the
                    [SmartDataLake](https://smartdatalake.eu/) project.""",
-    version="0.1.1",
+    version="1.0.0",
     contact={
         "name": "Thilo Spinner",
         "url": "https://www.vis.uni-konstanz.de/en/members/spinner",

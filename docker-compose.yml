@@ -5,8 +5,6 @@ networks:
    name: sdl_net
 
 volumes:
-  vae-data:
-    external: false
   redis-data:
     external: false
 
@@ -16,34 +14,25 @@ services:
   #######################
   visual-explorer:
     container_name: sdl_visual-explorer
-    image: sdl_visual-explorer:latest
-    build:
-      context: ./visual-explorer/
-      dockerfile: ./Dockerfile
+    image: smartdatalake/sdl-vis:visual-explorer-1.0.0
     ports:
       - "3000:3000"
-    # `CI=true` is a workaround for https://github.com/facebook/create-react-app/issues/8688
-    command: ["sh", "-c", "CI=true npm run-script start"]
+    volumes:
+      - ./visual-explorer/app:/usr/src/app
+    working_dir: /usr/src/app
+    command: ["sh", "-c", "npm install && npm run start"]
 
   ###############################
   # SDL Visual Analytics Engine #
   ###############################
   visual-analytics-engine:
     container_name: sdl_visual-analytics-engine
-    image: sdl_visual-analytics-engine:latest
-    build:
-      context: ./visual-analytics-engine/
-      dockerfile: ./Dockerfile
-    logging: # Limit log size
-      driver: "json-file"
-      options:
-        max-size: "5m"
+    image: smartdatalake/sdl-vis:visual-analytics-engine-1.0.0
     ports:
       - "3001:8080"
     volumes:
       - ./visual-analytics-engine/app:/usr/src/app
       - ./visual-analytics-engine/data/input:/data/input
-      # - vae-data:/data/output
       - ./visual-analytics-engine/data/output:/data/output
     env_file:
       - ./config/postgres.env
@@ -79,11 +68,8 @@ services:
   # JUPYTER LAB #
   ###############
   jupyter-lab:
-    container_name: sdl_jupyter
-    image: sdl_jupyter:latest
-    build:
-      context: ./jupyter
-      dockerfile: Dockerfile
+    container_name: sdl_dataprofiling
+    image: smartdatalake/sdl-vis:data-profiling-1.0.0
     volumes:
       - ./jupyter/notebooks:/home/jovyan/notebooks
     ports:

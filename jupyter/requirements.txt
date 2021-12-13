@@ -1,8 +1,0 @@
-# Database adapters
-phoenixdb
-jaydebeapi
-
-# Packages for vis & data science
-jupyterlab
-plotly==4.9.0
-ipywidgets>=7.5
