@@ -42,6 +42,9 @@ const Header = () => {
                     <LinkContainer to="/time-series-graph" activeStyle={{ color: '--var(light)' }}>
                         <Nav.Link>Time Series Graph</Nav.Link>
                     </LinkContainer>
+                    <LinkContainer to="/entity-resolution" activeStyle={{ color: '--var(light)' }}>
+                        <Nav.Link>Entity Resolution</Nav.Link>
+                    </LinkContainer>
                 </Nav>
                 <Nav className="mr-sm-2">
                     <Nav.Link href="/imprint">Imprint</Nav.Link>

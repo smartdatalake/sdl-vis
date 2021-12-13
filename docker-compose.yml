@@ -14,7 +14,7 @@ services:
   #######################
   visual-explorer:
     container_name: sdl_visual-explorer
-    image: smartdatalake/sdl-vis:visual-explorer-1.0.0
+    image: smartdatalake/sdl-vis:visual-explorer-1.1.0
     ports:
       - "3000:3000"
     volumes:
@@ -27,7 +27,7 @@ services:
   ###############################
   visual-analytics-engine:
     container_name: sdl_visual-analytics-engine
-    image: smartdatalake/sdl-vis:visual-analytics-engine-1.0.0
+    image: smartdatalake/sdl-vis:visual-analytics-engine-1.1.0
     ports:
       - "3001:8080"
     volumes:
@@ -69,7 +69,7 @@ services:
   ###############
   jupyter-lab:
     container_name: sdl_dataprofiling
-    image: smartdatalake/sdl-vis:data-profiling-1.0.0
+    image: smartdatalake/sdl-vis:data-profiling-1.1.0
     volumes:
       - ./jupyter/notebooks:/home/jovyan/notebooks
     ports:

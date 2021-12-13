@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import sys
 import warnings
@@ -11,6 +12,8 @@ from fastapi.responses import HTMLResponse
 from db import PostgresManager, ProteusManager, QALManager, GCoreManager
 from db.simsearch_manager import SimSearchManager
 from db.timeseries_manager import TimeSeriesManager
+from pydantic_models.misc.generic_dict import GenericDict
+from pydantic_models.requests.ggds_payload import GGDsPayload
 from pydantic_models.requests.graph_cluster_payload import GraphClusterPayload
 from pydantic_models.requests.graph_init_payload import GraphInitPayload
 from pydantic_models.requests.qal_payload import QALPayload, qal_request_examples, qal_response_examples
@@ -29,7 +32,9 @@ from pydantic_models.responses.simsearch_column import SimsearchColumns
 from pydantic_models.responses.simsearch_similarity_graph import SimilarityGraphs
 from pydantic_models.responses.timeseries_catalog import TimeseriesCatalog
 from pydantic_models.responses.timeseries_correlation_response import CorrelationResponse
+from typing import List
 from tools.data_transformer import transform
+from tools.shinner_manager import ShinnerManager
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -57,7 +62,7 @@ app = FastAPI(
     title="Visual Analytics Engine",
     description="""The computational backend of the visual analytics layer of the
                    [SmartDataLake](https://smartdatalake.eu/) project.""",
-    version="1.0.0",
+    version="1.1.0",
     contact={
         "name": "Thilo Spinner",
         "url": "https://www.vis.uni-konstanz.de/en/members/spinner",
@@ -79,6 +84,7 @@ proteus_manager = ProteusManager(PROTEUS_URL, PROTEUS_USER, PROTEUS_PASSWORD)
 qal_manager = QALManager(QAL_ENDPOINT)
 gcore_manager = GCoreManager(GCORE_ENDPOINT)
 timeseries_manager = TimeSeriesManager(TIMESERIES_ENDPOINT, TIMESERIES_API_KEY)
+shinner_manager = ShinnerManager(GCORE_ENDPOINT)
 
 
 @app.get("/",
@@ -245,6 +251,86 @@ async def timeseries_correlate(payload: TimeseriesCorrelatePayload):
     Compute the correlation of two or more time series with the given parameters.
     """
     return await timeseries_manager.correlate(payload)
+
+
+###########################
+# GCore Entity Resolution #
+###########################
+@app.get("/gcore/schema/{graph_name}")  # ok
+def get_schema(graph_name: str):
+    return shinner_manager.graph_schema(graph_name)
+
+
+@app.get("/gcore/availableGraphs")
+async def get_graphdb():
+    return shinner_manager.get_graphs()
+
+
+@app.post("/gcore/er/setggds")
+def set_ggds(args: List[GenericDict]): #List[GGDsPayload]
+    return shinner_manager.set_ggds(json.dumps(args))
+
+
+@app.get("/gcore/er/getggds")
+def get_ggds():
+    return shinner_manager.get_ggds()
+
+
+@app.get("/gcore/er/run")
+def run_er():
+    return shinner_manager.run_ER()
+
+
+@app.post("/gcore/er/drop-tables")
+def drop_ggds(args: List[GenericDict]):
+    return shinner_manager.drop_ggds(args)
+
+
+@app.post("/gcore/er/targetgraph")
+def target_graph_create(args: GenericDict):
+    return shinner_manager.target_graph_create(args)
+
+
+@app.post("/gcore/query/select")
+def select_query(args: GenericDict):
+    query = args["query"]
+    limit = args["limit"]
+    print("here select panel" + query)
+    return shinner_manager.selectQuery(query, limit)
+
+
+@app.post("/gcore/set-source-constraints")
+def set_constraints(args: GenericDict):
+    constraints = args["constraints"]
+    ggd = args["ggd"]
+    return shinner_manager.set_source_constraints(constraints, ggd)
+
+
+@app.post("/gcore/query/construct")
+def construct_query(args: GenericDict):
+    query = args["query"]
+    limit = args["limit"]
+    print("here construct panel" + query)
+    return shinner_manager.constructQuery(query, limit)
+
+
+# args for both select and graph neighbor
+# json format for "passing node information"
+# {
+#        "nodeLabel": "ProductAmazon",
+#        "id": "1",
+#        "edgeLabel": "",
+#        "graphName": "Amazon",
+#        "limit": -1
+#    }
+@app.post("/gcore/query/select-neighbor")
+def select_neighbor(args: GenericDict):
+    return shinner_manager.getNeighbors(args)
+
+
+@app.post("/gcore/query/graph-neighbor")
+def graph_neighbor(args: GenericDict):
+    return shinner_manager.getNeighborsGraph(args)
 
 
 def main(args):

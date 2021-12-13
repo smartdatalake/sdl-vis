@@ -7,6 +7,7 @@ import VPlotsTab from 'App/Dashboard/vPlotsTab';
 import { Route } from 'react-router-dom';
 import HierarchicalGraphTab from 'App/Dashboard/HierarchicalGraphTab';
 import TimeSeriesGraphTab from './TimeSeriesGraphTab';
+import EntityResolutionTab from './EntityResolutionTab';
 
 interface IDashboardProps {}
 
@@ -27,6 +28,9 @@ const Dashboard = (props: IDashboardProps) => {
             </Route>
             <Route exact path={'/time-series-graph'}>
                 <TimeSeriesGraphTab />
+            </Route>
+            <Route exact path={'/entity-resolution'}>
+                <EntityResolutionTab />
             </Route>
         </div>
     );
