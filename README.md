@@ -18,3 +18,7 @@ Create a copy of each `env.example` file, delete the `.example` part of the file
 The project is fully dockerized. Type `docker-compose up` to start all services.
 As soon as all containers are running, the interface of the Visual Explorer will be available under `http://127.0.0.1:3000`.
 The REST API of the Visual Analytics Engine will be available under `http://127.0.0.1:3001`.
+
+## Acknowledgement
+
+This software is being developed in the context of the [SmartDataLake](https://smartdatalake.eu/) project. This project has received funding from the European Union’s [Horizon 2020 research and innovation programme](https://ec.europa.eu/programmes/horizon2020/en) under grant agreement No 825041.
