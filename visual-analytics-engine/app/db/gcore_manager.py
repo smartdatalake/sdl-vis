@@ -29,14 +29,17 @@ class GCoreManager:
     ######################################
     @cached(alias="default", key_builder=lambda fn, *args, **kwargs: "26f41a0a_" + hash_args(args[1:]))
     async def get_available_graphs(self):
-        graph_db_response = requests.post(urljoin(self._service_url, "graphDB"))
+        try:
+            graph_db_response = requests.post(urljoin(self._service_url, "graphDB"))
 
-        if graph_db_response.ok:
-            graph_db = json.loads(graph_db_response.content)
+            if graph_db_response.ok:
+                graph_db = json.loads(graph_db_response.content)
 
-            async with aiohttp.ClientSession() as session:
-                res = await asyncio.gather(*[self._get_graph_schema(session, graph_name) for graph_name in graph_db])
-                return {graph_name: response for (graph_name, response) in zip(graph_db, res) if response is not False}
+                async with aiohttp.ClientSession() as session:
+                    res = await asyncio.gather(*[self._get_graph_schema(session, graph_name) for graph_name in graph_db])
+                    return {graph_name: response for (graph_name, response) in zip(graph_db, res) if response is not False}
+        except Exception as e:
+            print(f"{type(e).__name__} while retrieving graph DB.")
 
         # Fallback: empty dict.
         return {}

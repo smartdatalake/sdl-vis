@@ -12,8 +12,11 @@ class ShinnerManager:
 
     def __init__(self, gcore_endpoint):
         self._service_url = gcore_endpoint
-        r = requests.get(self._service_url + 'graphDB')
-        print(r.content)
+        try:
+            r = requests.get(self._service_url + 'graphDB', timeout=10)
+            print(r.content)
+        except:
+            pass
 
     def get_graphs(self):
         print("GCore service url::" + self._service_url)
